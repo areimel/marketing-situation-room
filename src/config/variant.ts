@@ -4,7 +4,7 @@
  * `/api/download` accepts — `tests/desktop-one-binary-model.test.mjs` fails if
  * the two drift apart.
  */
-export const SITE_VARIANTS = ['full', 'tech', 'finance', 'happy', 'commodity', 'energy'] as const;
+export const SITE_VARIANTS = ['full', 'tech', 'finance', 'happy', 'commodity', 'energy', 'marketing'] as const;
 
 export type SiteVariant = (typeof SITE_VARIANTS)[number];
 
@@ -20,6 +20,15 @@ const buildVariant = (() => {
   }
 })();
 
+/**
+ * A pinned build variant always boots as itself: it ignores the stored
+ * desktop/localhost variant and the hostname. Only the internal marketing
+ * build is pinned; every other build keeps its existing resolution path.
+ */
+export function isPinnedBuildVariant(buildVariant: string): boolean {
+  return buildVariant === 'marketing';
+}
+
 function loadStoredVariant(): string | null {
   try {
     return localStorage.getItem('worldmonitor-variant');
@@ -29,6 +38,7 @@ function loadStoredVariant(): string | null {
 }
 
 export const SITE_VARIANT: string = (() => {
+  if (isPinnedBuildVariant(buildVariant)) return 'marketing';
   if (typeof window === 'undefined') return buildVariant;
 
   const isTauri = '__TAURI_INTERNALS__' in window || '__TAURI__' in window;

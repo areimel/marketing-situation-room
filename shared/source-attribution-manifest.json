@@ -6017,6 +6017,9 @@
           "path": "server/worldmonitor/research/v1/list-tech-events.ts"
         },
         {
+          "path": "src/config/variant-meta.ts"
+        },
+        {
           "path": "src/services/desktop-runtime.ts"
         },
         {

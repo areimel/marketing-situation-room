@@ -253,6 +253,14 @@ function htmlVariantPlugin(activeMeta: VariantMeta, activeVariant: string, isDes
         .replace(/"description": "Real-time global intelligence dashboard with live news, markets, military tracking, infrastructure monitoring, and geopolitical data."/, `"description": "${activeMeta.description}"`)
         .replace(/"featureList": \[[\s\S]*?\]/, `"featureList": ${JSON.stringify(activeMeta.features, null, 8).replace(/\n/g, '\n      ')}`);
 
+      // Internal marketing build: never let search engines index it.
+      if (activeVariant === 'marketing') {
+        result = result.replace(
+          /<meta name="robots" content=".*?" \/>/,
+          '<meta name="robots" content="noindex, nofollow" />'
+        );
+      }
+
       // Theme-color meta — warm cream for happy variant
       if (activeVariant === 'happy') {
         result = result.replace(

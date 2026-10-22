@@ -150,4 +150,21 @@ export const VARIANT_META: { full: VariantMeta; [k: string]: VariantMeta } = {
       'Country energy exposure drill-down',
     ],
   },
+  marketing: {
+    title: 'Marketing Situation Room',
+    description: 'Internal agency dashboard tracking local weather, mentions, holidays, and demand signals for each client market.',
+    keywords: 'internal',
+    url: 'http://localhost:3000/dashboard',
+    siteName: 'Marketing Situation Room',
+    shortName: 'MarketingRoom',
+    subject: 'Local Marketing Intelligence',
+    classification: 'Internal Marketing Dashboard',
+    categories: ['business'],
+    features: [
+      'Client market map',
+      'Local weather alerts',
+      'Local mentions monitoring',
+      'Marketing calendar',
+    ],
+  },
 };

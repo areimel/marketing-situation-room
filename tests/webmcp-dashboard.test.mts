@@ -965,7 +965,7 @@ describe('WebMCP live dashboard bindings', () => {
   });
 
   it('switches every stable monitor key and overlays the destination on context', async () => {
-    assert.deepEqual([...SITE_VARIANTS], ['full', 'tech', 'finance', 'happy', 'commodity', 'energy']);
+    assert.deepEqual([...SITE_VARIANTS], ['full', 'tech', 'finance', 'happy', 'commodity', 'energy', 'marketing']);
     const navigated: string[] = [];
     for (const monitor of SITE_VARIANTS) {
       const result = await applyWebMcpSwitchMonitor(

@@ -466,7 +466,7 @@ describe('user-prefs variant boundary', () => {
   it('supports exactly the current app variants', () => {
     assert.deepEqual(PREFERENCE_VARIANTS, SITE_VARIANTS);
   });
-  const variants = ['full', 'tech', 'finance', 'happy', 'commodity', 'energy'];
+  const variants = ['full', 'tech', 'finance', 'happy', 'commodity', 'energy', 'marketing'];
   const invalidVariants = ['', 'FULL', ' full', 'full ', 'unknown', '__proto__', 'x'.repeat(1024)];
 
   for (const variant of [...variants, ...invalidVariants]) {
