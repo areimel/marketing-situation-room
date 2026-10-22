@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package worldmonitor.marketing.v1;
+
+import "buf/validate/validate.proto";
+import "sebuf/http/annotations.proto";
+
+// MentionQuery is one client's search terms and location.
+message MentionQuery {
+  // Roster client id the results belong to.
+  string client_id = 1 [(buf.validate.field).required = true];
+  // Search terms for this client, such as its business name.
+  repeated string terms = 2 [(buf.validate.field).repeated.max_items = 10];
+  // City used to localize the search.
+  string city = 3;
+  // Two-letter US state code used to localize the search.
+  string state_code = 4;
+}
+
+// Mention is one news article that matched a client's terms.
+message Mention {
+  // Stable mention identifier.
+  string id = 1;
+  // Roster client id the mention matched.
+  string client_id = 2;
+  // Article headline.
+  string title = 3;
+  // Publisher or feed name.
+  string source = 4;
+  // Article URL.
+  string url = 5;
+  // Publication time, Unix epoch milliseconds.
+  int64 published_at = 6 [(sebuf.http.int64_encoding) = INT64_ENCODING_NUMBER];
+  // Latitude of the mention; 0,0 means no location and the browser uses the client location.
+  double lat = 7;
+  // Longitude of the mention; 0,0 means no location and the browser uses the client location.
+  double lon = 8;
+}

@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package worldmonitor.marketing.v1;
+
+// CalendarEvent is one holiday or observance relevant to marketing planning.
+message CalendarEvent {
+  // Stable event identifier.
+  string id = 1;
+  // Calendar date as YYYY-MM-DD; a date, not a timestamp.
+  string date = 2;
+  // Display name of the event.
+  string name = 3;
+  // Event kind: holiday or observance.
+  string kind = 4;
+  // Marketing category ids the event is relevant to.
+  repeated string categories = 5;
+}

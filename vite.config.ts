@@ -535,6 +535,7 @@ function sebufApiPlugin(): Plugin {
       leadsServerMod, leadsHandlerMod,
       scenarioServerMod, scenarioHandlerMod,
       shippingV2ServerMod, shippingV2HandlerMod,
+      marketingServerMod, marketingHandlerMod,
     ] = await Promise.all([
         import('./server/router'),
         import('./server/cors'),
@@ -591,6 +592,8 @@ function sebufApiPlugin(): Plugin {
         import('./server/worldmonitor/scenario/v1/handler'),
         import('./src/generated/server/worldmonitor/shipping/v2/service_server'),
         import('./server/worldmonitor/shipping/v2/handler'),
+        import('./src/generated/server/worldmonitor/marketing/v1/service_server'),
+        import('./server/worldmonitor/marketing/v1/handler'),
       ]);
 
     const serverOptions = {
@@ -624,6 +627,7 @@ function sebufApiPlugin(): Plugin {
       ...leadsServerMod.createLeadsServiceRoutes(leadsHandlerMod.leadsHandler, serverOptions),
       ...scenarioServerMod.createScenarioServiceRoutes(scenarioHandlerMod.scenarioHandler, serverOptions),
       ...shippingV2ServerMod.createShippingV2ServiceRoutes(shippingV2HandlerMod.shippingV2Handler, serverOptions),
+      ...marketingServerMod.createMarketingServiceRoutes(marketingHandlerMod.marketingHandler, serverOptions),
     ];
     cachedCorsMod = corsMod;
     return routerMod.createRouter(allRoutes);

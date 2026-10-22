@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package worldmonitor.marketing.v1;
+
+import "buf/validate/validate.proto";
+import "worldmonitor/marketing/v1/mention.proto";
+
+// SearchLocalMentionsRequest carries per-client search queries in the POST body.
+message SearchLocalMentionsRequest {
+  // Per-client queries. Queries carry client names; never cached publicly and never logged.
+  repeated MentionQuery queries = 1 [(buf.validate.field).repeated.max_items = 20];
+}
+
+// SearchLocalMentionsResponse carries the mentions found for the queries.
+message SearchLocalMentionsResponse {
+  // Mentions matched across all queries.
+  repeated Mention mentions = 1;
+  // True when an upstream source failed and the list may be incomplete.
+  bool degraded = 2;
+}

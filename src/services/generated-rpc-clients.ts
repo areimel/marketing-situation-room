@@ -10,6 +10,7 @@ import type { GivingServiceClient as GivingServiceClientInstance } from '@/gener
 import type { HealthServiceClient as HealthServiceClientInstance } from '@/generated/client/worldmonitor/health/v1/service_client';
 import type { InfrastructureServiceClient as InfrastructureServiceClientInstance } from '@/generated/client/worldmonitor/infrastructure/v1/service_client';
 import type { IntelligenceServiceClient as IntelligenceServiceClientInstance } from '@/generated/client/worldmonitor/intelligence/v1/service_client';
+import type { MarketingServiceClient as MarketingServiceClientInstance } from '@/generated/client/worldmonitor/marketing/v1/service_client';
 import type { MaritimeServiceClient as MaritimeServiceClientInstance } from '@/generated/client/worldmonitor/maritime/v1/service_client';
 import type { MarketServiceClient as MarketServiceClientInstance } from '@/generated/client/worldmonitor/market/v1/service_client';
 import type { MilitaryServiceClient as MilitaryServiceClientInstance } from '@/generated/client/worldmonitor/military/v1/service_client';
@@ -189,6 +190,11 @@ export const SanctionsServiceClient = createLazyRpcClientConstructor<SanctionsSe
 export const SafetyServiceClient = createLazyRpcClientConstructor<SafetyServiceClientInstance>(async () => {
   const module = await import('@/generated/client/worldmonitor/safety/v1/service_client');
   return module.SafetyServiceClient;
+});
+
+export const MarketingServiceClient = createLazyRpcClientConstructor<MarketingServiceClientInstance>(async () => {
+  const module = await import('@/generated/client/worldmonitor/marketing/v1/service_client');
+  return module.MarketingServiceClient;
 });
 
 export const ScenarioServiceClient = createLazyRpcClientConstructor<ScenarioServiceClientInstance>(async () => {

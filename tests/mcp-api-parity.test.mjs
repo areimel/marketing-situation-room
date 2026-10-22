@@ -122,6 +122,16 @@ const EXCLUDED_FROM_MCP_PARITY = new Map([
   ["POST /api/company-monitoring/v1/update-monitored-company",
     "mutating: dark account-scoped company-monitoring write; MCP exposure is explicitly outside #6004 and runtime remains disabled until #6003"],
 
+  // === admin (4) ===
+  ["GET /api/marketing/v1/get-demand-trends",
+    "admin: internal agency marketing RPC; gated to signed-in members under MARKETING_DEPLOY by W9; never an open MCP tool"],
+  ["GET /api/marketing/v1/list-calendar-events",
+    "admin: internal agency marketing RPC; gated to signed-in members under MARKETING_DEPLOY by W9; never an open MCP tool"],
+  ["GET /api/marketing/v1/list-weather-alerts",
+    "admin: internal agency marketing RPC; gated to signed-in members under MARKETING_DEPLOY by W9; never an open MCP tool"],
+  ["POST /api/marketing/v1/search-local-mentions",
+    "admin: internal agency marketing RPC; gated to signed-in members under MARKETING_DEPLOY by W9; never an open MCP tool"],
+
   // === llm-passthrough (2) ===
   // classify-event moved to covered in #5697: the classify_event MCP tool wraps
   // it behind an enum-validated, temperature-0, 50-output-token handler with a

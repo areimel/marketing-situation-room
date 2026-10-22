@@ -37,6 +37,26 @@ function extractGetRoutes() {
   return routes.sort();
 }
 
+function extractPostRoutes() {
+  const generatedDir = join(root, 'src', 'generated', 'server', 'worldmonitor');
+  const routes = [];
+  function walk(dir) {
+    for (const entry of readdirSync(dir)) {
+      const full = join(dir, entry);
+      if (statSync(full).isDirectory()) {
+        walk(full);
+      } else if (entry === 'service_server.ts') {
+        const src = readFileSync(full, 'utf-8');
+        const re = /method:\s*"POST",\s*path:\s*"([^"]+)"/g;
+        let m;
+        while ((m = re.exec(src)) !== null) routes.push(m[1]);
+      }
+    }
+  }
+  walk(generatedDir);
+  return routes.sort();
+}
+
 function extractCacheTierKeys() {
   const gatewayPath = join(root, 'server', 'gateway.ts');
   const src = readFileSync(gatewayPath, 'utf-8');
@@ -51,6 +71,7 @@ function extractCacheTierKeys() {
 
 describe('RPC_CACHE_TIER route parity', () => {
   const getRoutes = extractGetRoutes();
+  const postRoutes = extractPostRoutes();
   const tierMap = extractCacheTierKeys();
   const tierKeys = Object.keys(tierMap);
 
@@ -68,12 +89,21 @@ describe('RPC_CACHE_TIER route parity', () => {
   });
 
   it('every cache tier key maps to a real generated route', () => {
-    const stale = tierKeys.filter((k) => !getRoutes.includes(k));
+    // A POST route may be listed only as 'no-store': the gateway applies that
+    // tier to non-GET responses (marketing mentions, R5) and nothing else.
+    const stale = tierKeys.filter((k) => !getRoutes.includes(k)
+      && !(postRoutes.includes(k) && tierMap[k] === 'no-store'));
     assert.deepStrictEqual(
       stale,
       [],
       `Stale RPC_CACHE_TIER entries (no matching generated route):\n  ${stale.join('\n  ')}`,
     );
+  });
+
+  it('lists POST routes only with the no-store tier', () => {
+    const nonGet = tierKeys.filter((k) => !getRoutes.includes(k));
+    for (const key of nonGet) assert.equal(tierMap[key], 'no-store', `${key} is not a GET route; only no-store applies`);
+    assert.equal(tierMap['/api/marketing/v1/search-local-mentions'], 'no-store');
   });
 
   it('does not cache paired physical-premium cohorts across source-clock boundaries', () => {

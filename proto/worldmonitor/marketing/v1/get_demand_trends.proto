@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package worldmonitor.marketing.v1;
+
+import "sebuf/http/annotations.proto";
+import "worldmonitor/marketing/v1/demand_trend.proto";
+
+// GetDemandTrendsRequest selects marketing categories and US states.
+message GetDemandTrendsRequest {
+  // Marketing category ids to include; an empty list means all categories.
+  repeated string categories = 1 [(sebuf.http.query) = {name: "categories"}];
+  // Two-letter US state codes to localize trends to.
+  repeated string state_codes = 2 [(sebuf.http.query) = {name: "state_codes"}];
+}
+
+// GetDemandTrendsResponse carries category demand series and trending terms.
+message GetDemandTrendsResponse {
+  // Demand series per category.
+  repeated DemandTrend trends = 1;
+  // Currently trending search terms.
+  repeated TrendingTerm trending_now = 2;
+  // True when an upstream source failed and the lists may be incomplete.
+  bool degraded = 3;
+}

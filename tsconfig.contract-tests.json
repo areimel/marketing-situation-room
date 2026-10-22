@@ -13,6 +13,7 @@
     "shared/company-monitoring-evaluation.ts",
     "tests/company-monitoring-blind-evaluation.test.mts",
     "tests/company-monitoring-curation.test.mts",
-    "tests/company-monitoring-evaluation.test.mts"
+    "tests/company-monitoring-evaluation.test.mts",
+    "tests/marketing-rpc-stubs.test.mts"
   ]
 }

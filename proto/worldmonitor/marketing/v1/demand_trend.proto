@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package worldmonitor.marketing.v1;
+
+import "sebuf/http/annotations.proto";
+
+// TrendPoint is one sample of a demand series.
+message TrendPoint {
+  // Sample date, Unix epoch milliseconds.
+  int64 date = 1 [(sebuf.http.int64_encoding) = INT64_ENCODING_NUMBER];
+  // Relative demand value for the sample.
+  double value = 2;
+}
+
+// DemandTrend is a demand series for one marketing category.
+message DemandTrend {
+  // Marketing category id.
+  string category = 1;
+  // Series samples in date order.
+  repeated TrendPoint points = 2;
+}
+
+// TrendingTerm is one currently trending search term.
+message TrendingTerm {
+  // Trending search term.
+  string term = 1;
+  // Geography the term is trending in, such as US or US-TX.
+  string geo = 2;
+  // Approximate traffic label from the source, such as "50K+".
+  string traffic = 3;
+}

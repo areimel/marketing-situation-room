@@ -283,6 +283,15 @@ const RPC_CACHE_TIER: Record<string, CacheTier> = {
   '/api/forecast/v1/get-forecast-scorecard': 'fast',
   '/api/safety/v1/get-toronto-safety': 'slow',
 
+  // Marketing situation room (contract resolution R5): every MarketingService
+  // RPC is private no-store. Mention queries carry client names, and the other
+  // responses are per-roster. Set statically so even a non-MARKETING_DEPLOY
+  // build never CDN-caches client terms. W9 must not relax these.
+  '/api/marketing/v1/list-weather-alerts': 'no-store',
+  '/api/marketing/v1/list-calendar-events': 'no-store',
+  '/api/marketing/v1/search-local-mentions': 'no-store',
+  '/api/marketing/v1/get-demand-trends': 'no-store',
+
   '/api/unrest/v1/list-unrest-events': 'slow',
   '/api/cyber/v1/list-cyber-threats': 'static',
   '/api/conflict/v1/list-acled-events': 'slow',
@@ -2630,6 +2639,16 @@ export function createDomainGateway(
         mergedHeaders.set('Cache-Control', 'no-store');
       }
       mergedHeaders.delete('X-No-Cache');
+    }
+
+    // A non-GET route declared no-store in RPC_CACHE_TIER (today only the
+    // marketing POST mentions route, R5) must say so explicitly: its body is
+    // private and no shared cache may keep it. POST→GET compat requests were
+    // already rewritten to GET above, so this never touches GET routes.
+    if (request.method !== 'GET' && request.method !== 'HEAD' && RPC_CACHE_TIER[pathname] === 'no-store') {
+      mergedHeaders.set('Cache-Control', 'no-store');
+      mergedHeaders.delete('CDN-Cache-Control');
+      mergedHeaders.delete('Vercel-CDN-Cache-Control');
     }
 
     // Idempotent POST (opt-in): buffer the body so it can be persisted for
