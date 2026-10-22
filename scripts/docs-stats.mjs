@@ -993,7 +993,18 @@ function computeStats({ sourceAttribution: suppliedAttribution } = {}) {
 
   // ---- Map layers (src/config/map-layer-definitions.ts) ----
   const mld = read('src/config/map-layer-definitions.ts');
-  const { keys: layerKeys, lockedKeys: lockedLayerKeys } = parseLayerRegistry(mld);
+  const variantBlock = mld.slice(mld.indexOf('VARIANT_LAYER_ORDER'), mld.indexOf('export function getLayersForVariant'));
+  const variantLayerKeys = {};
+  for (const m of variantBlock.matchAll(/(\w+):\s*\[([^\]]*)\]/g)) {
+    variantLayerKeys[m[1]] = (m[2].match(/'[^']+'/g) || []).map((k) => k.slice(1, -1));
+  }
+  // The marketing variant is internal (no public host), so public copy never
+  // counts it or the layers only it uses (MARKETING_ONLY_LAYERS in the source).
+  const marketingOnlyLayerKeys = new Set((variantLayerKeys.marketing ?? []).filter((k) =>
+    !Object.entries(variantLayerKeys).some(([v, keys]) => v !== 'marketing' && keys.includes(k))));
+  const parsedLayerRegistry = parseLayerRegistry(mld);
+  const layerKeys = parsedLayerRegistry.keys.filter((k) => !marketingOnlyLayerKeys.has(k));
+  const lockedLayerKeys = parsedLayerRegistry.lockedKeys.filter((k) => !marketingOnlyLayerKeys.has(k));
   const layerDefinitions = layerKeys.length;
 
   // Web-locked premium layers: literal 'locked' in the def() call. Desktop-only
@@ -1009,13 +1020,11 @@ function computeStats({ sourceAttribution: suppliedAttribution } = {}) {
   // instead of quoting a free total — see validatePlanLayerEntitlementCopy.
   const lockedLayerDefinitions = lockedLayerKeys.length;
 
-  const variantBlock = mld.slice(mld.indexOf('VARIANT_LAYER_ORDER'), mld.indexOf('export function getLayersForVariant'));
-  const variantLayers = {};
-  for (const m of variantBlock.matchAll(/(\w+):\s*\[([^\]]*)\]/g)) {
-    // The marketing variant is internal (no public host), so public copy never counts it.
-    if (m[1] === 'marketing') continue;
-    variantLayers[m[1]] = (m[2].match(/'[^']+'/g) || []).length;
-  }
+  const variantLayers = Object.fromEntries(
+    Object.entries(variantLayerKeys)
+      .filter(([v]) => v !== 'marketing')
+      .map(([v, keys]) => [v, keys.length]),
+  );
   const variantCount = Object.keys(variantLayers).length;
 
   // ---- Root app directories used by AGENTS.md and CONTRIBUTING.md ----

@@ -1,5 +1,6 @@
 import type { MapLayers } from '@/types';
 import { CURATED_COUNTRIES } from '@/config/countries';
+import { SITE_VARIANT } from '@/config/variant';
 // boundary-ignore: commands are built lazily at runtime via getAllCommands()
 import { getCurrentLanguage, getCurrentLanguageTag, t } from '@/services/i18n';
 import { toFlagEmoji } from '@/utils/country-flag';
@@ -113,15 +114,6 @@ export const COMMANDS: Command[] = [
   { id: 'panel:fuel-shortages', keywords: ['fuel shortages', 'shortage', 'petrol shortage', 'diesel shortage', 'jet fuel shortage', 'rationing', 'stations closed'], label: 'Panel: Global Fuel Shortage Registry', icon: '⛽', category: 'panels' },
   { id: 'panel:energy-disruptions', keywords: ['energy disruptions', 'disruption log', 'disruption timeline', 'energy events', 'sanctions events', 'pipeline sabotage', 'nord stream sabotage', 'drone strike', 'force majeure', 'mechanical failure'], label: 'Panel: Energy Disruptions Log', icon: '\u{1F4A5}', category: 'panels' },
   { id: 'panel:energy-risk-overview', keywords: ['risk overview', 'energy risk', 'executive overview', 'energy dashboard', 'hormuz status', 'eu gas fill', 'brent price', 'crisis day', 'energy executive'], label: 'Panel: Global Energy Risk Overview', icon: '\u{1F4CA}', category: 'panels' },
-  { id: 'panel:client-roster', keywords: ['client roster', 'clients', 'client list', 'accounts'], label: 'Panel: Client Roster', icon: '\u{1F4C7}', category: 'panels' },
-  { id: 'panel:marketing-alerts', keywords: ['client alerts', 'marketing alerts', 'alert rules', 'notifications'], label: 'Panel: Client Alerts', icon: '\u{1F514}', category: 'panels' },
-  { id: 'panel:weather-alerts', keywords: ['weather alerts', 'nws', 'storm warnings', 'severe weather'], label: 'Panel: Weather Alerts', icon: '\u26C8\uFE0F', category: 'panels' },
-  { id: 'panel:marketing-calendar', keywords: ['marketing calendar', 'holidays', 'events calendar', 'campaign dates'], label: 'Panel: Marketing Calendar', icon: '\u{1F4C5}', category: 'panels' },
-  { id: 'panel:local-mentions', keywords: ['local mentions', 'local news', 'brand mentions', 'press mentions'], label: 'Panel: Local Mentions', icon: '\u{1F4F0}', category: 'panels' },
-  { id: 'panel:demand-trends', keywords: ['demand trends', 'search trends', 'google trends', 'trending searches'], label: 'Panel: Demand Trends', icon: '\u{1F4C8}', category: 'panels' },
-  { id: 'panel:platform-updates', keywords: ['platform updates', 'google ads', 'meta ads', 'algorithm updates'], label: 'Panel: Platform Updates', icon: '\u{1F4E2}', category: 'panels' },
-  { id: 'panel:local-seo', keywords: ['local seo', 'google business profile', 'local search', 'maps ranking'], label: 'Panel: Local SEO', icon: '\u{1F50D}', category: 'panels' },
-  { id: 'panel:marketing-industry', keywords: ['marketing industry', 'marketing news', 'advertising news', 'martech'], label: 'Panel: Marketing Industry', icon: '\u{1F4CA}', category: 'panels' },
   { id: 'panel:gov', keywords: ['government', 'gov', 'policy', 'legislation'], label: 'Panel: Government', icon: '\u{1F3DB}\uFE0F', category: 'panels' },
   { id: 'panel:policy', keywords: ['policy', 'ai policy', 'regulation', 'tech policy'], label: 'Panel: AI Policy & Regulation', icon: '\u{1F4DC}', category: 'panels' },
   { id: 'panel:thinktanks', keywords: ['think tanks', 'thinktanks', 'analysis'], label: 'Panel: Think Tanks', icon: '\u{1F9E0}', category: 'panels' },
@@ -303,6 +295,28 @@ export const COMMANDS: Command[] = [
   { id: 'time:7d', keywords: ['7d', 'week', 'last week', '7 days'], label: 'Show events from last 7 days', icon: '\u{1F5D3}\uFE0F', category: 'actions' },
 ];
 
+/**
+ * CMD+K panel commands for the internal marketing variant's own panels. They
+ * join the palette only in the marketing build (getAllCommands), the same way
+ * ALL_PANELS fences the panels themselves, so public builds' command list and
+ * published command count stay unchanged.
+ */
+export const MARKETING_PANEL_COMMANDS: Command[] = [
+  { id: 'panel:client-roster', keywords: ['client roster', 'clients', 'client list', 'accounts'], label: 'Panel: Client Roster', icon: '\u{1F4C7}', category: 'panels' },
+  { id: 'panel:marketing-alerts', keywords: ['client alerts', 'marketing alerts', 'alert rules', 'notifications'], label: 'Panel: Client Alerts', icon: '\u{1F514}', category: 'panels' },
+  { id: 'panel:weather-alerts', keywords: ['weather alerts', 'nws', 'storm warnings', 'severe weather'], label: 'Panel: Weather Alerts', icon: '\u26C8\uFE0F', category: 'panels' },
+  { id: 'panel:marketing-calendar', keywords: ['marketing calendar', 'holidays', 'events calendar', 'campaign dates'], label: 'Panel: Marketing Calendar', icon: '\u{1F4C5}', category: 'panels' },
+  { id: 'panel:local-mentions', keywords: ['local mentions', 'local news', 'brand mentions', 'press mentions'], label: 'Panel: Local Mentions', icon: '\u{1F4F0}', category: 'panels' },
+  { id: 'panel:demand-trends', keywords: ['demand trends', 'search trends', 'google trends', 'trending searches'], label: 'Panel: Demand Trends', icon: '\u{1F4C8}', category: 'panels' },
+  { id: 'panel:platform-updates', keywords: ['platform updates', 'google ads', 'meta ads', 'algorithm updates'], label: 'Panel: Platform Updates', icon: '\u{1F4E2}', category: 'panels' },
+  { id: 'panel:local-seo', keywords: ['local seo', 'google business profile', 'local search', 'maps ranking'], label: 'Panel: Local SEO', icon: '\u{1F50D}', category: 'panels' },
+  { id: 'panel:marketing-industry', keywords: ['marketing industry', 'marketing news', 'advertising news', 'martech'], label: 'Panel: Marketing Industry', icon: '\u{1F4CA}', category: 'panels' },
+];
+
+const SITE_COMMANDS: Command[] = SITE_VARIANT === 'marketing'
+  ? [...COMMANDS, ...MARKETING_PANEL_COMMANDS]
+  : COMMANDS;
+
 // All ISO 3166-1 alpha-2 codes — Intl.DisplayNames resolves human-readable names at runtime
 const ISO_CODES = [
   'AD', 'AE', 'AF', 'AG', 'AL', 'AM', 'AO', 'AR', 'AT', 'AU', 'AZ', 'BA', 'BB', 'BD', 'BE', 'BF',
@@ -397,11 +411,11 @@ function buildCountryCommands(): Command[] {
 
   _cachedLang = lang;
   _cachedCountryCommands = result;
-  _cachedAllCommands = [...injectLocalizedKeywords(COMMANDS), ...result];
+  _cachedAllCommands = [...injectLocalizedKeywords(SITE_COMMANDS), ...result];
   return result;
 }
 
 export function getAllCommands(): Command[] {
   buildCountryCommands();
-  return _cachedAllCommands.length > 0 ? _cachedAllCommands : COMMANDS;
+  return _cachedAllCommands.length > 0 ? _cachedAllCommands : SITE_COMMANDS;
 }

@@ -1327,14 +1327,24 @@ const PUBLIC_VARIANT_PANELS: Record<string, PanelConfig> = {
   ...FULL_PANELS,
 };
 
-export const ALL_PANELS: Record<string, PanelConfig> = {
-  ...PUBLIC_VARIANT_PANELS,
-  // Marketing-only ids are appended. Shared ids (map, insights) keep the labels
-  // and key positions the other variants give them, so their seeds don't change.
-  ...Object.fromEntries(
-    Object.entries(MARKETING_PANELS).filter(([id]) => !Object.prototype.hasOwnProperty.call(PUBLIC_VARIANT_PANELS, id)),
-  ),
-};
+/**
+ * Panels only the internal marketing variant defines. Shared ids (map,
+ * insights) are excluded: they keep the labels and key positions the public
+ * variants give them, so public seeds don't change.
+ */
+const MARKETING_ONLY_PANELS: Record<string, PanelConfig> = Object.fromEntries(
+  Object.entries(MARKETING_PANELS).filter(([id]) => !Object.prototype.hasOwnProperty.call(PUBLIC_VARIANT_PANELS, id)),
+);
+
+/**
+ * Marketing-only panels join the registry only in the marketing build, the
+ * same way MARKETING_ONLY_LAYERS fences the map layers. Public builds' panel
+ * settings, Settings > All list, CMD+K panel commands and WebMCP panel
+ * catalog therefore stay exactly as they were before the variant existed.
+ */
+export const ALL_PANELS: Record<string, PanelConfig> = SITE_VARIANT === 'marketing'
+  ? { ...PUBLIC_VARIANT_PANELS, ...MARKETING_ONLY_PANELS }
+  : { ...PUBLIC_VARIANT_PANELS };
 
 /** Per-variant canonical panel order (keys = which panels are enabled by default). */
 export const VARIANT_DEFAULTS: Record<string, string[]> = {
@@ -1396,8 +1406,11 @@ export function getEffectivePanelConfig(key: string, variant: string): PanelConf
  */
 export function getInitialPanelSettingsForVariant(variant: string): Record<string, PanelConfig> {
   const variantDefaults = new Set(VARIANT_DEFAULTS[variant] ?? VARIANT_DEFAULTS.full ?? []);
+  // The requested variant's own catalog is always addressable, even when this
+  // build's ALL_PANELS fences it out (marketing panels on a public build).
+  const keys = new Set([...Object.keys(ALL_PANELS), ...Object.keys(getVariantPanelConfigs(variant) ?? {})]);
   return Object.fromEntries(
-    Object.keys(ALL_PANELS).map((key) => {
+    [...keys].map((key) => {
       const config = getEffectivePanelConfig(key, variant);
       return [key, { ...config, enabled: variantDefaults.has(key) && config.enabled }];
     }),
