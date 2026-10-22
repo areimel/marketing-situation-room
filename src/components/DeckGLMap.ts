@@ -61,6 +61,16 @@ import type { WeatherAlert } from '@/services/weather';
 import type { CanadaRoadRecord } from '@/services/canada-roads';
 import type { CanadaAlert } from '@/services/canada-alerts';
 import { escapeHtml } from '@/utils/sanitize';
+import { getFocusedClientId } from '@/services/marketing/focus';
+import {
+  EMPTY_MARKETING_LAYER_DATA,
+  MARKETING_LAYER_KEYS,
+  buildMarketingLayers,
+  getMarketingTooltip,
+  mergeMarketingLayerData,
+  type MarketingLayerContext,
+  type MarketingLayerData,
+} from './marketing/map';
 import {
   derivePipelinePublicBadge,
   type PipelineEvidenceInput,
@@ -600,6 +610,7 @@ export class DeckGLMap {
   private hotspots: HotspotWithBreaking[];
   private earthquakes: Earthquake[] = [];
   private weatherAlerts: WeatherAlert[] = [];
+  private marketingLayerContext: MarketingLayerData = { ...EMPTY_MARKETING_LAYER_DATA, focusedClientId: getFocusedClientId() };
   private canadaRoads: CanadaRoadRecord[] = [];
   private canadaAlerts: CanadaAlert[] = [];
   private outages: InternetOutage[] = [];
@@ -2403,6 +2414,8 @@ export class DeckGLMap {
     if (this.newsLocations.length > 0) {
       layers.push(...this.createNewsLocationsLayer());
     }
+
+    if (SITE_VARIANT === 'marketing') layers.push(...buildMarketingLayers(this.getMarketingLayerContext()));
 
     const result = layers.filter(Boolean) as LayersList;
     const elapsed = performance.now() - startTime;
@@ -4941,6 +4954,7 @@ export class DeckGLMap {
 
     const rawLayerId = info.layer?.id || '';
     const layerId = rawLayerId.endsWith('-ghost') ? rawLayerId.slice(0, -6) : rawLayerId;
+    if (layerId.startsWith('marketing-')) return getMarketingTooltip(info);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const obj = info.object as any;
     const text = (value: unknown): string => escapeHtml(String(value ?? ''));
@@ -7044,6 +7058,17 @@ export class DeckGLMap {
   public setWeatherAlerts(alerts: WeatherAlert[]): void {
     this.weatherAlerts = alerts;
     this.render();
+  }
+
+  /** Shallow-merges marketing layer data (R9); `visibleLayerIds` is derived, never patched. */
+  public setMarketingLayerContext(patch: Partial<MarketingLayerData>): void {
+    this.marketingLayerContext = mergeMarketingLayerData(this.marketingLayerContext, patch);
+    this.render();
+  }
+
+  private getMarketingLayerContext(): MarketingLayerContext {
+    const visibleLayerIds = new Set<string>(MARKETING_LAYER_KEYS.filter((key) => this.state.layers[key] === true));
+    return { ...this.marketingLayerContext, visibleLayerIds };
   }
 
   public setCanadaRoads(records: CanadaRoadRecord[]): void {

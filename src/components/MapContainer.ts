@@ -65,6 +65,7 @@ import type { DiseaseOutbreakItem } from '@/services/disease-outbreaks';
 import type { GetChokepointStatusResponse } from '@/services/supply-chain';
 import type { ChinaCorridorControlTower } from '../../shared/china-corridor-control-towers';
 import { projectChinaCorridorOverlay } from './map/china-corridor-overlay';
+import { mergeMarketingLayerData, type MarketingLayerData } from './marketing/map/types';
 import type { ScenarioVisualState, ScenarioResult } from '@/config/scenario-templates';
 import { getAuthState } from '@/services/auth-state';
 import { hasPremiumAccess } from '@/services/panel-gating';
@@ -223,6 +224,7 @@ export class MapContainer {
   private cachedEarthquakes: Earthquake[] | null = null;
   private cachedConflictEvents: AcledConflictEvent[] | null = null;
   private cachedWeatherAlerts: WeatherAlert[] | null = null;
+  private cachedMarketingLayerContext: Partial<MarketingLayerData> | null = null;
   private cachedCanadaRoads: CanadaRoadRecord[] | null = null;
   private cachedCanadaAlerts: CanadaAlert[] | null = null;
   private cachedOutages: InternetOutage[] | null = null;
@@ -803,6 +805,7 @@ export class MapContainer {
     if (this.cachedEarthquakes) this.setEarthquakes(this.cachedEarthquakes);
     if (this.cachedConflictEvents) this.setConflictEvents(this.cachedConflictEvents);
     if (this.cachedWeatherAlerts) this.setWeatherAlerts(this.cachedWeatherAlerts);
+    if (this.cachedMarketingLayerContext) this.setMarketingLayerContext(this.cachedMarketingLayerContext);
     if (this.cachedCanadaRoads) this.setCanadaRoads(this.cachedCanadaRoads);
     if (this.cachedCanadaAlerts) this.setCanadaAlerts(this.cachedCanadaAlerts);
     if (this.cachedOutages) this.setOutages(this.cachedOutages);
@@ -1102,6 +1105,17 @@ export class MapContainer {
     this.cachedWeatherAlerts = alerts;
     if (this.useGlobe) { this.globeMap?.setWeatherAlerts(alerts); return; }
     if (this.useDeckGL) { this.deckGLMap?.setWeatherAlerts(alerts); } else { this.svgMap?.setWeatherAlerts(alerts); }
+  }
+
+  /** Marketing layers render on DeckGLMap only; the merged patch is cached and replayed into a new renderer (R9). */
+  public setMarketingLayerContext(patch: Partial<MarketingLayerData>): void {
+    // Only keys that were actually patched are cached, so a replay never resets untouched keys.
+    this.cachedMarketingLayerContext = mergeMarketingLayerData(
+      (this.cachedMarketingLayerContext ?? {}) as MarketingLayerData,
+      patch,
+    );
+    if (this.useGlobe) return;
+    if (this.useDeckGL) this.deckGLMap?.setMarketingLayerContext(patch);
   }
 
   public setCanadaRoads(records: CanadaRoadRecord[]): void {
@@ -1808,6 +1822,7 @@ export class MapContainer {
     this.cachedEarthquakes = null;
     this.cachedConflictEvents = null;
     this.cachedWeatherAlerts = null;
+    this.cachedMarketingLayerContext = null;
     this.cachedCanadaRoads = null;
     this.cachedCanadaAlerts = null;
     this.cachedOutages = null;
