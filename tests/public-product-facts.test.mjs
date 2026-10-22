@@ -108,6 +108,7 @@ const REQUIRED_CURRENT_DOC_EXCLUDES = [
   'docs/plans/',
   'docs/research/',
   'docs/solutions/',
+  'docs/superpowers/',
 ];
 
 function independentlyCollectCurrentDocs() {

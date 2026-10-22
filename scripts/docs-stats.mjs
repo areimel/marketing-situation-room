@@ -1269,6 +1269,7 @@ const ACQUISITION_CLAIM_EXCLUDES = [
   'docs/research/',
   'docs/railway-seed-consolidation-runbook.md',
   'docs/solutions/',
+  'docs/superpowers/',
   'docs/source-attribution.mdx',
   'public/blog/',
   'public/pro/',
