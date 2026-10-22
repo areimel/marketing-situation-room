@@ -372,10 +372,13 @@ describe('panel cluster chunk guardrails', () => {
       ...extractStringArray('PANEL_CHUNK_NAMES'),
       ...extractStringArray('PANEL_SUPPORT_CHUNK_NAMES'),
     ]);
-    const panelFiles = readdirSync(componentDir)
+    // Recursive: vite's manualChunks classifies every *Panel.ts under
+    // src/components/, subdirectories included (e.g. components/marketing/).
+    const panelFiles = readdirSync(componentDir, { recursive: true })
       .filter(file => file.endsWith('.ts'))
-      .map(file => ({ file, key: panelKeyForFile(file) }))
+      .map(file => ({ file, key: panelKeyForFile(file.split('/').pop()) }))
       .filter(({ key }) => key !== null);
+    const panelKeysOnDisk = new Set(panelFiles.map(({ key }) => key));
 
     const missing = panelFiles
       .filter(({ key }) => !panelCluster.has(key) && !panelSupportCluster.has(key))
@@ -385,7 +388,7 @@ describe('panel cluster chunk guardrails', () => {
     const configuredKeys = [...panelCluster.keys(), ...panelSupportCluster.keys()];
     const stale = configuredKeys
       .filter(key => key !== 'CountryBriefPage' && key !== 'RegionalIntelligenceBoard')
-      .filter(key => !existsSync(resolve(componentDir, `${key}Panel.ts`)));
+      .filter(key => !panelKeysOnDisk.has(key));
     assert.deepEqual(stale, [], 'Panel chunk maps contain entries for missing panel files.');
 
     const invalidChunks = [...panelCluster.entries(), ...panelSupportCluster.entries()]

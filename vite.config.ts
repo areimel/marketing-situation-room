@@ -64,6 +64,7 @@ const PANEL_CHUNK_NAMES = [
   'panels-economy',
   'panels-intel',
   'panels-risk',
+  'panels-marketing',
 ] as const;
 type PanelChunkName = typeof PANEL_CHUNK_NAMES[number];
 const PANEL_SUPPORT_CHUNK_NAMES = ['panel-support'] as const;
@@ -177,6 +178,12 @@ const PANEL_CLUSTER: Record<string, PanelChunkName> = {
   ThreatTimeline: 'panels-risk',
   TechHubs: 'panels-risk', TechReadiness: 'panels-risk', TorontoSafety: 'panels-risk',
   WorldClock: 'panels-risk',
+  // Internal marketing variant (src/components/marketing/); only the
+  // marketing build reaches these, so they get their own chunk.
+  ClientRoster: 'panels-marketing', DemandTrends: 'panels-marketing',
+  LocalMentions: 'panels-marketing', MarketingAlerts: 'panels-marketing',
+  MarketingCalendar: 'panels-marketing', MarketingPlaceholder: 'panels-marketing',
+  WeatherAlerts: 'panels-marketing',
 };
 
 const PANEL_SUPPORT_CLUSTER: Record<string, PanelSupportChunkName> = {
