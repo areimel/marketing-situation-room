@@ -1146,10 +1146,154 @@ const ENERGY_MOBILE_MAP_LAYERS: MapLayers = {
 };
 
 // ============================================
+// MARKETING variant — internal marketing situation room (no public host)
+// Client locations, NWS warnings, local mentions, marketing news.
+// Every geopolitics, military and market layer is off; the seeded
+// `weather` layer stays off too (NWS warnings replace it).
+// ============================================
+const MARKETING_PANELS: Record<string, PanelConfig> = {
+  map: { name: 'Client Map', enabled: true, priority: 1 },
+  insights: { name: 'AI Marketing Brief', enabled: true, priority: 1 },
+  'marketing-alerts': { name: 'Client Alerts', enabled: true, priority: 1 },
+  'local-mentions': { name: 'Local Mentions', enabled: true, priority: 1 },
+  'marketing-calendar': { name: 'Marketing Calendar', enabled: true, priority: 1 },
+  'demand-trends': { name: 'Demand Trends', enabled: true, priority: 1 },
+  'platform-updates': { name: 'Platform Updates', enabled: true, priority: 1 },
+  'weather-alerts': { name: 'Weather Alerts', enabled: true, priority: 1 },
+  'client-roster': { name: 'Client Roster', enabled: true, priority: 1 },
+  'local-seo': { name: 'Local SEO', enabled: true, priority: 1 },
+  'marketing-industry': { name: 'Marketing Industry', enabled: true, priority: 1 },
+};
+
+const MARKETING_MAP_LAYERS: MapLayers = {
+  // Every non-marketing layer is off (keys mirror COMMODITY_MAP_LAYERS)
+  gpsJamming: false,
+  satellites: false,
+  conflicts: false,
+  bases: false,
+  cables: false,
+  pipelines: false,
+  hotspots: false,
+  ais: false,
+  nuclear: false,
+  irradiators: false,
+  sanctions: false,
+  weather: false,
+  canadaRoads: false,
+  canadaAlerts: false,
+  economic: false,
+  waterways: false,
+  outages: false,
+  cyberThreats: false,
+  datacenters: false,
+  protests: false,
+  flights: false,
+  military: false,
+  natural: false,
+  spaceports: false,
+  minerals: false,
+  fires: false,
+  ucdpEvents: false,
+  displacement: false,
+  climate: false,
+  startupHubs: false,
+  cloudRegions: false,
+  accelerators: false,
+  techHQs: false,
+  techEvents: false,
+  stockExchanges: false,
+  financialCenters: false,
+  centralBanks: false,
+  commodityHubs: false,
+  gulfInvestments: false,
+  positiveEvents: false,
+  kindness: false,
+  happiness: false,
+  speciesRecovery: false,
+  renewableInstallations: false,
+  tradeRoutes: false,
+  iranAttacks: false,
+  ciiChoropleth: false,
+  resilienceScore: false,
+  dayNight: false,
+  miningSites: false,
+  processingPlants: false,
+  commodityPorts: false,
+  webcams: false,
+  diseaseOutbreaks: false,
+  // Marketing layers (enabled)
+  marketingClients: true,
+  nwsAlerts: true,
+  localMentions: true,
+};
+
+const MARKETING_MOBILE_MAP_LAYERS: MapLayers = {
+  // Every non-marketing layer is off (keys mirror COMMODITY_MAP_LAYERS)
+  gpsJamming: false,
+  satellites: false,
+  conflicts: false,
+  bases: false,
+  cables: false,
+  pipelines: false,
+  hotspots: false,
+  ais: false,
+  nuclear: false,
+  irradiators: false,
+  sanctions: false,
+  weather: false,
+  canadaRoads: false,
+  canadaAlerts: false,
+  economic: false,
+  waterways: false,
+  outages: false,
+  cyberThreats: false,
+  datacenters: false,
+  protests: false,
+  flights: false,
+  military: false,
+  natural: false,
+  spaceports: false,
+  minerals: false,
+  fires: false,
+  ucdpEvents: false,
+  displacement: false,
+  climate: false,
+  startupHubs: false,
+  cloudRegions: false,
+  accelerators: false,
+  techHQs: false,
+  techEvents: false,
+  stockExchanges: false,
+  financialCenters: false,
+  centralBanks: false,
+  commodityHubs: false,
+  gulfInvestments: false,
+  positiveEvents: false,
+  kindness: false,
+  happiness: false,
+  speciesRecovery: false,
+  renewableInstallations: false,
+  tradeRoutes: false,
+  iranAttacks: false,
+  ciiChoropleth: false,
+  resilienceScore: false,
+  dayNight: false,
+  miningSites: false,
+  processingPlants: false,
+  commodityPorts: false,
+  webcams: false,
+  diseaseOutbreaks: false,
+  // Marketing layers (enabled)
+  marketingClients: true,
+  nwsAlerts: true,
+  localMentions: true,
+};
+
+// ============================================
 // UNIFIED PANEL REGISTRY
 // ============================================
 
-type PanelVariant = 'full' | 'tech' | 'finance' | 'commodity' | 'energy' | 'happy';
+type PanelVariant = 'full' | 'tech' | 'finance' | 'commodity' | 'energy' | 'happy' | 'marketing';
 
 const VARIANT_PANEL_CONFIGS: Record<PanelVariant, Record<string, PanelConfig>> = {
   full: FULL_PANELS,
@@ -1158,6 +1302,7 @@ const VARIANT_PANEL_CONFIGS: Record<PanelVariant, Record<string, PanelConfig>> =
   commodity: COMMODITY_PANELS,
   energy: ENERGY_PANELS,
   happy: HAPPY_PANELS,
+  marketing: MARKETING_PANELS,
 };
 
 function getVariantPanelConfigs(variant: string): Record<string, PanelConfig> | undefined {
@@ -1173,13 +1318,22 @@ export function isPanelNativeToVariant(panelId: string, variant: string): boolea
 }
 
 /** All panels from all variants — canonical cross-variant registry. */
-export const ALL_PANELS: Record<string, PanelConfig> = {
+const PUBLIC_VARIANT_PANELS: Record<string, PanelConfig> = {
   ...HAPPY_PANELS,
   ...COMMODITY_PANELS,
   ...ENERGY_PANELS,
   ...TECH_PANELS,
   ...FINANCE_PANELS,
   ...FULL_PANELS,
+};
+
+export const ALL_PANELS: Record<string, PanelConfig> = {
+  ...PUBLIC_VARIANT_PANELS,
+  // Marketing-only ids are appended. Shared ids (map, insights) keep the labels
+  // and key positions the other variants give them, so their seeds don't change.
+  ...Object.fromEntries(
+    Object.entries(MARKETING_PANELS).filter(([id]) => !Object.prototype.hasOwnProperty.call(PUBLIC_VARIANT_PANELS, id)),
+  ),
 };
 
 /** Per-variant canonical panel order (keys = which panels are enabled by default). */
@@ -1190,6 +1344,7 @@ export const VARIANT_DEFAULTS: Record<string, string[]> = {
   commodity: Object.keys(VARIANT_PANEL_CONFIGS.commodity),
   energy:    Object.keys(VARIANT_PANEL_CONFIGS.energy),
   happy:     Object.keys(VARIANT_PANEL_CONFIGS.happy),
+  marketing: Object.keys(VARIANT_PANEL_CONFIGS.marketing),
 };
 
 /**
@@ -1465,7 +1620,9 @@ export const DEFAULT_MAP_LAYERS = SITE_VARIANT === 'happy'
         ? COMMODITY_MAP_LAYERS
         : SITE_VARIANT === 'energy'
           ? ENERGY_MAP_LAYERS
-          : FULL_MAP_LAYERS;
+          : SITE_VARIANT === 'marketing'
+            ? MARKETING_MAP_LAYERS
+            : FULL_MAP_LAYERS;
 
 export const MOBILE_DEFAULT_MAP_LAYERS = SITE_VARIANT === 'happy'
   ? HAPPY_MOBILE_MAP_LAYERS
@@ -1477,7 +1634,9 @@ export const MOBILE_DEFAULT_MAP_LAYERS = SITE_VARIANT === 'happy'
         ? COMMODITY_MOBILE_MAP_LAYERS
         : SITE_VARIANT === 'energy'
           ? ENERGY_MOBILE_MAP_LAYERS
-          : FULL_MOBILE_MAP_LAYERS;
+          : SITE_VARIANT === 'marketing'
+            ? MARKETING_MOBILE_MAP_LAYERS
+            : FULL_MOBILE_MAP_LAYERS;
 
 /** Maps map-layer toggle keys to their data-freshness source IDs (single source of truth). */
 export const LAYER_TO_SOURCE: Partial<Record<keyof MapLayers, DataSourceId[]>> = {
@@ -1627,6 +1786,13 @@ export const PANEL_CATEGORY_MAP: Record<string, { labelKey: string; panelKeys: s
     labelKey: 'header.panelCatHappyPlanet',
     panelKeys: ['species', 'renewable', 'giving'],
     variants: ['happy'],
+  },
+
+  // Marketing variant
+  marketing: {
+    labelKey: 'marketing.header.panelCategory',
+    panelKeys: ['marketing-alerts', 'local-mentions', 'marketing-calendar', 'demand-trends', 'platform-updates', 'weather-alerts', 'client-roster', 'local-seo', 'marketing-industry'],
+    variants: ['marketing'],
   },
 };
 

@@ -739,6 +739,11 @@ export interface MapLayers {
   /** Live tanker positions (AIS ship type 80-89) inside chokepoint bboxes.
    *  Refreshed every 60s via getVesselSnapshot. Energy Atlas parity-push. */
   liveTankers?: boolean;
+  // Marketing variant layers (optional for the same reason as the energy
+  // layers above: existing MapLayers literals stay valid untouched).
+  marketingClients?: boolean;
+  nwsAlerts?: boolean;
+  localMentions?: boolean;
 }
 
 export interface AIDataCenter {

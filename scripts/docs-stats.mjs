@@ -1012,6 +1012,8 @@ function computeStats({ sourceAttribution: suppliedAttribution } = {}) {
   const variantBlock = mld.slice(mld.indexOf('VARIANT_LAYER_ORDER'), mld.indexOf('export function getLayersForVariant'));
   const variantLayers = {};
   for (const m of variantBlock.matchAll(/(\w+):\s*\[([^\]]*)\]/g)) {
+    // The marketing variant is internal (no public host), so public copy never counts it.
+    if (m[1] === 'marketing') continue;
     variantLayers[m[1]] = (m[2].match(/'[^']+'/g) || []).length;
   }
   const variantCount = Object.keys(variantLayers).length;

@@ -86,8 +86,10 @@ function collectPages(query: Parameters<typeof listMapLayerCatalog>[1] extends i
 describe('map-layer catalog keys', () => {
   it('enumerates the complete non-sunset registry after the current variant order', () => {
     const complete = getCompleteLayerCatalogKeys('full');
+    // Internal marketing-variant layers stay out of every other catalog.
+    const marketingOnly = new Set<string>(['marketingClients', 'nwsAlerts', 'localMentions']);
     const expected = (Object.keys(LAYER_REGISTRY) as Array<keyof MapLayers>)
-      .filter((key) => !isSunsetLayer(key));
+      .filter((key) => !isSunsetLayer(key) && !marketingOnly.has(key));
     assert.deepEqual([...complete].sort(), [...expected].sort());
     assert.deepEqual(complete.slice(0, getOrderedLayerKeys('full').length), getOrderedLayerKeys('full'));
     assert.equal(complete.includes('iranAttacks'), false);

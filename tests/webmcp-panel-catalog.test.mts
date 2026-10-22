@@ -8,7 +8,7 @@ import {
   getEffectivePanelConfig,
   getInitialPanelSettingsForVariant,
 } from '../src/config/panels.ts';
-import { SITE_VARIANTS } from '../src/config/variant.ts';
+import { SWITCHABLE_SITE_VARIANTS } from '../src/config/variant.ts';
 import {
   DASHBOARD_PANEL_CATALOG_DEFAULT_LIMIT,
   DASHBOARD_PANEL_CATALOG_MAX_LIMIT,
@@ -165,7 +165,8 @@ describe('WebMCP dashboard panel catalog', () => {
       id: 'map',
       label: 'Global Map',
       category: 'core',
-      variants: [...SITE_VARIANTS].filter((variant) => (
+      // Internal variants (marketing) are never advertised as switch targets.
+      variants: [...SWITCHABLE_SITE_VARIANTS].filter((variant) => (
         (VARIANT_DEFAULTS[variant] ?? []).includes('map')
       )),
       enabled: true,

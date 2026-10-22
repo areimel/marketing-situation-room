@@ -1103,6 +1103,12 @@ const ENERGY_FEEDS: Record<string, Feed[]> = {
   ],
 };
 
+// Marketing variant feeds — internal marketing situation room. Empty stub:
+// W1 owns the trade-feed categories (platform-updates, local-seo,
+// marketing-industry). Having an explicit arm keeps the variant from falling
+// through to FULL_FEEDS geopolitics.
+const MARKETING_FEEDS: Record<string, Feed[]> = {};
+
 // Variant-aware exports
 export const FEEDS = SITE_VARIANT === 'tech'
   ? TECH_FEEDS
@@ -1114,7 +1120,9 @@ export const FEEDS = SITE_VARIANT === 'tech'
         ? COMMODITY_FEEDS
         : SITE_VARIANT === 'energy'
           ? ENERGY_FEEDS
-          : FULL_FEEDS;
+          : SITE_VARIANT === 'marketing'
+            ? MARKETING_FEEDS
+            : FULL_FEEDS;
 
 // Canonical category→feeds map: the union of every variant's feed set.
 // `FEEDS` (above) is just the active variant's PRESET; users freely customize
@@ -1142,6 +1150,7 @@ export const CANONICAL_FEEDS: Record<string, Feed[]> = mergeCanonicalFeeds([
   COMMODITY_FEEDS,
   ENERGY_FEEDS,
   HAPPY_FEEDS,
+  MARKETING_FEEDS,
   ON_DEMAND_FEEDS,
 ]);
 

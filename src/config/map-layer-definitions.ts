@@ -10,7 +10,7 @@ import { isDesktopRuntime } from '@/services/runtime';
  * imports this type so the picker, dispatcher, and shell stay in lockstep.
  */
 export type RendererKind = 'svg' | 'deck' | 'globe';
-export type MapVariant = 'full' | 'tech' | 'finance' | 'happy' | 'commodity' | 'energy';
+export type MapVariant = 'full' | 'tech' | 'finance' | 'happy' | 'commodity' | 'energy' | 'marketing';
 
 const _desktop = isDesktopRuntime();
 
@@ -129,6 +129,10 @@ export const LAYER_REGISTRY: Record<keyof MapLayers, LayerDefinition> = {
   storageFacilities:        def('storageFacilities',        '&#127959;', 'storageFacilities',        'Storage Facilities', ['deck']),
   fuelShortages:            def('fuelShortages',            '&#9881;',   'fuelShortages',            'Fuel Shortages', ['deck']),
   liveTankers:              def('liveTankers',              '&#128674;', 'liveTankers',              'Live Tanker Positions', ['deck']),
+  // Marketing variant layers: DeckGL-only (built by src/components/marketing/map/).
+  marketingClients:         def('marketingClients',         '&#128205;', 'marketingClients',         'Client Locations', ['deck']),
+  nwsAlerts:                def('nwsAlerts',                '&#9928;',   'nwsAlerts',                'NWS Warnings', ['deck']),
+  localMentions:            def('localMentions',            '&#128240;', 'localMentions',            'Local Mentions', ['deck']),
 };
 
 export const V1_LAYER_EXPLANATION_KEYS = [
@@ -388,6 +392,9 @@ const VARIANT_LAYER_ORDER: Record<MapVariant, Array<keyof MapLayers>> = {
     'sanctions', 'fires', 'climate', 'weather', 'canadaRoads', 'outages', 'natural', 'canadaAlerts',
     'resilienceScore', 'dayNight',
   ],
+  marketing: [
+    'marketingClients', 'nwsAlerts', 'localMentions', 'natural', 'fires', 'dayNight',
+  ],
 };
 
 const I18N_PREFIX = 'components.deckgl.layers.';
@@ -412,11 +419,16 @@ export function getOrderedLayerKeys(variant: MapVariant): Array<keyof MapLayers>
     .filter(k => !isSunsetLayer(k));
 }
 
+// The marketing variant is internal: its layers never appear in another
+// variant's complete catalog (WebMCP listings, public product facts).
+const MARKETING_ONLY_LAYERS: ReadonlySet<keyof MapLayers> = new Set(VARIANT_LAYER_ORDER.marketing
+  .filter(k => !Object.entries(VARIANT_LAYER_ORDER).some(([v, keys]) => v !== 'marketing' && keys.includes(k))));
+
 export function getCompleteLayerCatalogKeys(variant: MapVariant): Array<keyof MapLayers> {
   const primary = getOrderedLayerKeys(variant);
   const seen = new Set(primary);
   const rest = (Object.keys(LAYER_REGISTRY) as Array<keyof MapLayers>)
-    .filter(k => !seen.has(k) && !isSunsetLayer(k));
+    .filter(k => !seen.has(k) && !isSunsetLayer(k) && (variant === 'marketing' || !MARKETING_ONLY_LAYERS.has(k)));
   return [...primary, ...rest];
 }
 
