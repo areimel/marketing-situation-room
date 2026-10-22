@@ -1,0 +1,12 @@
+allowBuilds:
+  '@bufbuild/buf': true
+  '@sentry/cli': true
+  '@vaadin/vaadin-usage-statistics': true
+  browser-tabs-lock: true
+  bufferutil: true
+  core-js: true
+  es5-ext: true
+  esbuild: true
+  protobufjs: true
+  sharp: true
+  utf-8-validate: true
