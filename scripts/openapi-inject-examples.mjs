@@ -22,6 +22,7 @@ import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { sortRec, serialize, eq, normalizeKey } from './lib/openapi-codegen.mjs';
+import { isBundledServiceSpecFile } from './openapi-exclude-internal-services.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const apiDir = resolve(root, 'docs/api');
@@ -1498,7 +1499,8 @@ function processAllSpecs(countStats = false) {
   const serviceSpecs = [];
   for (const file of specFiles) {
     const result = processServiceSpec(file);
-    serviceSpecs.push(result.spec);
+    // Internal services are removed from the bundle at the end of make generate.
+    if (isBundledServiceSpecFile(file)) serviceSpecs.push(result.spec);
     if (result.changed) touched++;
     if (countStats) {
       operations += result.operations;

@@ -711,8 +711,10 @@ describe('OpenAPI examples contract', () => {
   it('adds request and response examples to the unified OpenAPI bundle', () => {
     const bundle = loadUnifiedOpenApiSpec();
     const result = assertOperationExamples(bundle, 'worldmonitor.openapi.yaml');
-    assert.equal(result.operations, 242);
-    assert.equal(result.responseExpected, 242);
+    // 4 fewer than the per-service total: MarketingService is internal and kept
+    // out of the public bundle (scripts/openapi-exclude-internal-services.mjs).
+    assert.equal(result.operations, 238);
+    assert.equal(result.responseExpected, 238);
   });
 
   // A honeypot field (hidden anti-bot input) is silently discarded by the

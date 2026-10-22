@@ -39,6 +39,10 @@ const OPENAPI_HTTP_METHODS = new Set(['get', 'post', 'put', 'delete', 'patch', '
 // JSON string per absolute source path, memoized for this process.
 const jsonMemo = new Map();
 
+// Internal services keep their per-service spec but are removed from the
+// unified bundle; bundle-parity checks compare against bundled services only.
+export { isBundledServiceSpecFile } from '../../scripts/openapi-exclude-internal-services.mjs';
+
 /** Sorted `METHOD /path` identities for every real operation in one spec. */
 export function openApiOperationIds(spec, { methods = OPENAPI_HTTP_METHODS } = {}) {
   const ids = [];

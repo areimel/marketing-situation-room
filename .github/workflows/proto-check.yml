@@ -24,6 +24,7 @@ env:
     scripts/generate-scorecard-edge-mirrors.mjs
     scripts/lib/main-module.mjs
     scripts/lib/openapi-codegen.mjs
+    scripts/openapi-exclude-internal-services.mjs
     scripts/openapi-inject-async-jobs.mjs
     scripts/openapi-inject-billing-verification.mjs
     scripts/openapi-inject-china-corridors.mjs

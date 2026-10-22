@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { load as loadYaml } from 'js-yaml';
 
 import {
+  isBundledServiceSpecFile,
   loadUnifiedOpenApiSpec,
   loadYamlSpecCached,
   openApiOperationIds,
@@ -190,7 +191,9 @@ describe('OpenAPI self-describing operations (orank api-schema-analysis)', () =>
   it('publishes exactly the per-service operation population in the bundle', () => {
     const files = readdirSync(apiDir).filter((file) => /Service\.openapi\.yaml$/.test(file)).sort();
     assert.ok(files.length > 0, 'expected per-service YAML specs');
-    const specsByFile = files.map((file) => [file, loadYamlSpecCached(resolve(apiDir, file))]);
+    const specsByFile = files
+      .filter((file) => isBundledServiceSpecFile(file))
+      .map((file) => [file, loadYamlSpecCached(resolve(apiDir, file))]);
     const expected = serviceOpenApiOperationIds(specsByFile)
       .map((id) => id.replace(/^[^:]+::/u, ''))
       .sort();

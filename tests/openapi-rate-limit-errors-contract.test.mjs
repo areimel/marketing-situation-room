@@ -9,6 +9,7 @@ import { load as loadYaml } from 'js-yaml';
 
 import {
   discoverProtoServiceNames,
+  isBundledServiceSpecFile,
   loadUnifiedOpenApiSpec,
   openApiOperationIds,
   serviceOpenApiOperationIds,
@@ -45,8 +46,9 @@ const yamlSpecsByFile = new Map(serviceYaml.map((file) => [
 ]));
 const jsonServiceOperationIds = serviceOpenApiOperationIds(jsonSpecsByFile);
 const yamlServiceOperationIds = serviceOpenApiOperationIds(yamlSpecsByFile);
-const jsonBundleOperationIds = [...jsonSpecsByFile.values()]
-  .flatMap((spec) => openApiOperationIds(spec))
+const jsonBundleOperationIds = [...jsonSpecsByFile]
+  .filter(([file]) => isBundledServiceSpecFile(file))
+  .flatMap(([, spec]) => openApiOperationIds(spec))
   .sort();
 
 function assertExactOperationParity(actual, expected, message) {
