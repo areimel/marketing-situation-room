@@ -27,3 +27,25 @@ it('does not publish a public marketing host (deliberate non-registration)', () 
   assert.doesNotMatch(readFileSync('middleware.ts', 'utf8'), /marketing\.worldmonitor\.app/);
   assert.doesNotMatch(readFileSync('vercel.json', 'utf8'), /marketing/);
 });
+it('keeps the internal marketing variant out of public switch surfaces on non-marketing builds (Additive)', async () => {
+  const { SWITCHABLE_SITE_VARIANTS, isSwitchableSiteVariant } = await import('../src/config/variant.ts');
+  assert.deepEqual([...SWITCHABLE_SITE_VARIANTS], ['full', 'tech', 'finance', 'happy', 'commodity', 'energy']);
+  assert.equal(isSwitchableSiteVariant('marketing'), false);
+  assert.equal(isSwitchableSiteVariant('tech'), true);
+  const { WEBMCP_MONITOR_KEYS } = await import('../src/services/webmcp.ts');
+  assert.deepEqual([...WEBMCP_MONITOR_KEYS], ['full', 'tech', 'finance', 'happy', 'commodity', 'energy']);
+});
+it('ignores a stored marketing variant on a localhost non-marketing build', async () => {
+  const g = globalThis as Record<string, unknown>;
+  const prevWindow = g.window;
+  const prevStorage = g.localStorage;
+  g.window = { location: { hostname: 'localhost' } };
+  g.localStorage = { getItem: (key: string) => (key === 'worldmonitor-variant' ? 'marketing' : null) };
+  try {
+    const mod = await import('../src/config/variant.ts?stored-marketing');
+    assert.equal(mod.SITE_VARIANT, 'full');
+  } finally {
+    g.window = prevWindow;
+    g.localStorage = prevStorage;
+  }
+});

@@ -20,7 +20,7 @@ import {
   mapZoomToGlobeAltitude,
 } from '../src/utils/globe-zoom.ts';
 import type { AppContext, UnifiedSettingsController } from '../src/app/app-context.ts';
-import { SITE_VARIANTS } from '../src/config/variant.ts';
+import { SWITCHABLE_SITE_VARIANTS } from '../src/config/variant.ts';
 import {
   VARIANT_DEFAULTS,
   getEffectivePanelConfig,
@@ -965,9 +965,9 @@ describe('WebMCP live dashboard bindings', () => {
   });
 
   it('switches every stable monitor key and overlays the destination on context', async () => {
-    assert.deepEqual([...SITE_VARIANTS], ['full', 'tech', 'finance', 'happy', 'commodity', 'energy', 'marketing']);
+    assert.deepEqual([...SWITCHABLE_SITE_VARIANTS], ['full', 'tech', 'finance', 'happy', 'commodity', 'energy']);
     const navigated: string[] = [];
-    for (const monitor of SITE_VARIANTS) {
+    for (const monitor of SWITCHABLE_SITE_VARIANTS) {
       const result = await applyWebMcpSwitchMonitor(
         makeContext(),
         'full',
@@ -984,7 +984,7 @@ describe('WebMCP live dashboard bindings', () => {
       assert.equal(result.navigation, monitor === 'full' ? 'none' : 'reload', monitor);
       assert.equal(result.message, monitor === 'full' ? 'Already on that monitor.' : 'Switched monitor.', monitor);
     }
-    assert.deepEqual(navigated, [...SITE_VARIANTS]);
+    assert.deepEqual(navigated, [...SWITCHABLE_SITE_VARIANTS]);
   });
 
   it('denies a missing visible monitor link without navigating', async () => {

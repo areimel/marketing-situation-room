@@ -59,7 +59,11 @@ import {
   WEBMCP_TOOL_BUDGETS,
   type WebMcpSpaToolName,
 } from '../config/webmcp';
-import { SITE_VARIANTS, isSiteVariant, type SiteVariant } from '../config/variant';
+import {
+  SWITCHABLE_SITE_VARIANTS,
+  isSwitchableSiteVariant,
+  type SwitchableSiteVariant,
+} from '../config/variant';
 import {
   DASHBOARD_PANEL_CATALOG_CATEGORY_KEYS,
   DASHBOARD_PANEL_CATALOG_DEFAULT_LIMIT,
@@ -149,7 +153,7 @@ export interface WebMcpAppBindings {
     options?: WebMcpExecutionOptions,
   ): DashboardPanelCatalogPage | Promise<DashboardPanelCatalogPage>;
   switchMonitor(
-    monitor: SiteVariant,
+    monitor: SwitchableSiteVariant,
     options?: WebMcpExecutionOptions,
   ): WebMcpNavigationResult | Promise<WebMcpNavigationResult>;
   openSettings(
@@ -347,9 +351,9 @@ export interface PanelTabSelectionResult {
   message: string;
 }
 
-export const WEBMCP_MONITOR_KEYS = SITE_VARIANTS;
+export const WEBMCP_MONITOR_KEYS = SWITCHABLE_SITE_VARIANTS;
 
-export type WebMcpMonitorKey = SiteVariant;
+export type WebMcpMonitorKey = SwitchableSiteVariant;
 export type WebMcpNavDestination = WebMcpMonitorKey | 'settings' | 'alerts' | 'mission_picker';
 export type WebMcpMonitorNavigation = 'none' | 'reload' | 'assign';
 
@@ -1729,7 +1733,7 @@ function hasOnlyOwnKeys(
 }
 
 type SwitchMonitorInput =
-  | { ok: true; monitor: SiteVariant }
+  | { ok: true; monitor: SwitchableSiteVariant }
   | {
     ok: false;
     reason: 'malformed_arguments' | 'unknown_monitor';
@@ -1745,7 +1749,7 @@ function validateSwitchMonitorInput(args: Record<string, unknown>): SwitchMonito
     };
   }
   const monitor = typeof args.monitor === 'string' ? args.monitor : '';
-  if (!isSiteVariant(monitor)) {
+  if (!isSwitchableSiteVariant(monitor)) {
     return {
       ok: false,
       reason: 'unknown_monitor',
@@ -1994,7 +1998,7 @@ export function buildWebMcpTools(
           variant: {
             type: 'string',
             description: 'Monitor variant to list. Omit to include every canonical panel ID.',
-            enum: [...SITE_VARIANTS],
+            enum: [...SWITCHABLE_SITE_VARIANTS],
           },
           category: {
             type: 'string',
@@ -2063,7 +2067,7 @@ export function buildWebMcpTools(
           monitor: {
             type: 'string',
             description: 'Stable monitor key: full, tech, finance, commodity, energy, or happy.',
-            enum: [...SITE_VARIANTS],
+            enum: [...SWITCHABLE_SITE_VARIANTS],
           },
         },
         required: ['monitor'],

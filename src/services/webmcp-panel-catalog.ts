@@ -4,7 +4,13 @@ import {
   VARIANT_DEFAULTS,
   getEffectivePanelConfig,
 } from '@/config/panels';
-import { SITE_VARIANTS, isSiteVariant, type SiteVariant } from '@/config/variant';
+import {
+  SITE_VARIANTS,
+  SWITCHABLE_SITE_VARIANTS,
+  isSiteVariant,
+  isSwitchableSiteVariant,
+  type SiteVariant,
+} from '@/config/variant';
 import type { PanelConfig } from '@/types';
 import { DASHBOARD_PANEL_ACTION_ID_PATTERN } from '../../shared/agent-bus-contract';
 
@@ -48,7 +54,7 @@ const PANEL_VARIANT_AVAILABILITY = Object.freeze(
     CANONICAL_PANEL_IDS.map((panelId) => [
       panelId,
       Object.freeze(
-        SITE_VARIANTS.filter((variant) => VARIANT_PANEL_ID_SETS[variant].has(panelId)),
+        SWITCHABLE_SITE_VARIANTS.filter((variant) => VARIANT_PANEL_ID_SETS[variant].has(panelId)),
       ),
     ]),
   ),
@@ -147,7 +153,7 @@ export function listDashboardPanelCatalog(
 
   const variantFilter = query.variant;
   if (variantFilter !== undefined) {
-    if (typeof variantFilter !== 'string' || !isSiteVariant(variantFilter)) {
+    if (typeof variantFilter !== 'string' || !isSwitchableSiteVariant(variantFilter)) {
       throw new DashboardPanelCatalogError(
         'invalid_variant',
         'variant must be one of: full, tech, finance, commodity, energy, happy.',

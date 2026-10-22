@@ -486,7 +486,7 @@ describe('webmcp.ts: current API contract', () => {
     const tool = tools.find((candidate) => candidate.name === 'switch_monitor');
     assert.ok(tool);
     assert.deepEqual(tool.inputSchema.properties.monitor.enum, [
-      'full', 'tech', 'finance', 'happy', 'commodity', 'energy', 'marketing',
+      'full', 'tech', 'finance', 'happy', 'commodity', 'energy',
     ]);
     assert.equal(tool.annotations.readOnlyHint, false);
 

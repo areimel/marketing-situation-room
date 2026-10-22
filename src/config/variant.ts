@@ -12,6 +12,27 @@ export function isSiteVariant(value: string | null | undefined): value is SiteVa
   return typeof value === 'string' && (SITE_VARIANTS as readonly string[]).includes(value);
 }
 
+/** Internal variants that only exist as their own pinned build, never as a switch target. */
+type InternalSiteVariant = 'marketing';
+
+export type SwitchableSiteVariant = Exclude<SiteVariant, InternalSiteVariant>;
+
+/**
+ * Variants a user or agent can switch to from inside the app (WebMCP
+ * switch_monitor, the stored desktop/localhost variant). The internal
+ * marketing variant is excluded so non-marketing builds behave exactly as
+ * before it was registered.
+ */
+export const SWITCHABLE_SITE_VARIANTS = SITE_VARIANTS.filter(
+  (variant): variant is SwitchableSiteVariant => variant !== 'marketing',
+) as readonly SwitchableSiteVariant[];
+
+export function isSwitchableSiteVariant(
+  value: string | null | undefined,
+): value is SwitchableSiteVariant {
+  return typeof value === 'string' && (SWITCHABLE_SITE_VARIANTS as readonly string[]).includes(value);
+}
+
 const buildVariant = (() => {
   try {
     return import.meta.env.VITE_VARIANT || 'full';
@@ -44,7 +65,7 @@ export const SITE_VARIANT: string = (() => {
   const isTauri = '__TAURI_INTERNALS__' in window || '__TAURI__' in window;
   if (isTauri) {
     const stored = loadStoredVariant();
-    if (isSiteVariant(stored)) return stored;
+    if (isSwitchableSiteVariant(stored)) return stored;
     return buildVariant;
   }
 
@@ -60,7 +81,7 @@ export const SITE_VARIANT: string = (() => {
 
   if (h === 'localhost' || h === '127.0.0.1') {
     const stored = loadStoredVariant();
-    if (isSiteVariant(stored)) return stored;
+    if (isSwitchableSiteVariant(stored)) return stored;
     return buildVariant;
   }
 
