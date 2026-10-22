@@ -257,6 +257,20 @@ export const ACCOUNT_DELETION_REGISTRY: readonly RegistryEntry[] = [
   { target: "companyMonitoringXIdentities", action: "delegate", notes: "Via companyMonitoringAccounts purge" },
   { target: "companyMonitoringXEvidence", action: "delegate", notes: "Via companyMonitoringAccounts purge" },
   { target: "companyMonitoringXPostAliases", action: "delegate", notes: "Via companyMonitoringAccounts purge" },
+  // Marketing situation room (internal marketing variant). These tables hold
+  // agency-owned operational data and carry no userId, so a consumer account
+  // deletion has nothing to key on. Staff access is revoked by an admin.
+  {
+    target: "marketingMembers",
+    action: "retain",
+    notes:
+      "Agency staff access allowlist keyed by work email, no userId. Admins own "
+      + "it; a member is removed with marketing removeMember, not account deletion",
+  },
+  { target: "marketingClients", action: "skip", notes: "Agency client roster; no userId" },
+  { target: "marketingAlertChannel", action: "skip", notes: "Agency-wide alert destination singleton; no userId" },
+  { target: "clientAlertRules", action: "skip", notes: "Per-client alert config; no userId" },
+  { target: "marketingAlertEvents", action: "skip", notes: "Per-client alert log; no userId" },
 ] as const;
 
 export const ERASE_WRITE_BUDGET = 64;
