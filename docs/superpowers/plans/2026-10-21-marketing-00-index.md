@@ -242,3 +242,13 @@ These settle the "Contract Issues" the workstream plans raised. **W0 builds ever
 30. **Relay service key:** the relay sends `MARKETING_RELAY_SERVICE_KEY`. That value must also be listed in `WORLDMONITOR_VALID_KEYS`.
 31. **Geocoding User-Agent:** W2's Convex geocode action copies the User-Agent format, with a fallback when no contact email is set. That's acceptable.
 32. **Provenance:** marketing feeds show "unknown" provenance badges. This is accepted for now.
+
+### Round-3 resolutions (from W0 visual check, 2026-10-22)
+33. **W3 owns map chrome in the marketing variant:**
+    - The map legend and layer chips show only marketing layers. Today the geopolitics chips are still visible (conflict zones, military bases, …).
+    - The header strip title "GLOBAL SITUATION" becomes the marketing equivalent.
+34. **W9 owns marketing branding and upsell removal under the marketing variant:**
+    - Hide the Pro upsell banner, "Upgrade to Pro", "Create account" and the World Monitor footer links.
+    - Fix the header badge, which is truncated to "MARKETIN".
+    - Replace the logo text "MONITOR" and the footer wordmark with "Marketing Situation Room".
+    - Hide or replace the GitHub, Download App and Embed header controls.
