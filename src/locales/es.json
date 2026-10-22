@@ -3743,5 +3743,10 @@
       "description": "Activar fuentes de Irán, Israel, el Golfo y las regiones kurdas"
     },
     "unavailable": "El paquete {{preset}} no está disponible con tus paneles actuales"
+  },
+  "marketing": {
+    "header": {
+      "panelCategory": "Marketing"
+    }
   }
 }

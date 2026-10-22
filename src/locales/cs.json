@@ -3763,5 +3763,10 @@
       "description": "Povolit zdroje z Íránu, Izraele, oblasti Perského zálivu a kurdských regionů"
     },
     "unavailable": "Balíček {{preset}} není s aktuálními panely dostupný"
+  },
+  "marketing": {
+    "header": {
+      "panelCategory": "Marketing"
+    }
   }
 }

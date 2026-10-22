@@ -3723,5 +3723,10 @@
       "description": "İran, İsrail, Körfez ve Kürt bölgelerine ilişkin kaynakları etkinleştirir"
     },
     "unavailable": "{{preset}} ön ayarı mevcut panellerinizle kullanılamıyor"
+  },
+  "marketing": {
+    "header": {
+      "panelCategory": "Marketing"
+    }
   }
 }

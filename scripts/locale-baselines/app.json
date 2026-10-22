@@ -2074,6 +2074,7 @@
   "intel.topics.nuclear.name": "Nuclear",
   "intel.topics.sanctions.description": "Economic sanctions and trade restrictions",
   "intel.topics.sanctions.name": "Sanctions",
+  "marketing.header.panelCategory": "Marketing",
   "mcp.addPanel": "Add Panel",
   "mcp.apiKey": "API Key",
   "mcp.apiKeyPlaceholder": "Paste your API key",

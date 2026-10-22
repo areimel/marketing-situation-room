@@ -3703,5 +3703,10 @@
       "description": "Bật các nguồn về Iran, Israel, Vùng Vịnh và các khu vực người Kurd"
     },
     "unavailable": "Gói {{preset}} không khả dụng với các bảng hiện tại"
+  },
+  "marketing": {
+    "header": {
+      "panelCategory": "Marketing"
+    }
   }
 }

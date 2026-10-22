@@ -3723,5 +3723,10 @@
       "description": "منابع ایران، اسرائیل، خلیج و مناطق کردنشین را فعال کنید"
     },
     "unavailable": "پیش‌تنظیم {{preset}} با پنل‌های فعلی شما در دسترس نیست"
+  },
+  "marketing": {
+    "header": {
+      "panelCategory": "Marketing"
+    }
   }
 }

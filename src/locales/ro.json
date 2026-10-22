@@ -3743,5 +3743,10 @@
       "description": "Activează sursele despre Iran, Israel, Golf și regiunile kurde"
     },
     "unavailable": "Presetul {{preset}} nu este disponibil cu panourile actuale"
+  },
+  "marketing": {
+    "header": {
+      "panelCategory": "Promovare"
+    }
   }
 }

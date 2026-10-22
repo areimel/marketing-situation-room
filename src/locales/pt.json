@@ -3743,5 +3743,10 @@
       "description": "Ativar fontes sobre Irã, Israel, Golfo e regiões curdas"
     },
     "unavailable": "A predefinição {{preset}} não está disponível com os painéis atuais"
+  },
+  "marketing": {
+    "header": {
+      "panelCategory": "Marketing"
+    }
   }
 }

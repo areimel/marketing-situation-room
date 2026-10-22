@@ -3723,5 +3723,10 @@
       "description": "Iránnal, Izraellel, az Öböllel és a kurd régiókkal kapcsolatos források engedélyezése"
     },
     "unavailable": "A(z) {{preset}} csomag a jelenlegi panelekkel nem érhető el"
+  },
+  "marketing": {
+    "header": {
+      "panelCategory": "Marketingkommunikáció"
+    }
   }
 }

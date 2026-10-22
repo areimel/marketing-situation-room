@@ -3722,5 +3722,10 @@
     "deleteTab": "Delete tab",
     "deleteTabAria": "Delete tab {{name}}",
     "tabNameAria": "Tab name"
+  },
+  "marketing": {
+    "header": {
+      "panelCategory": "Marketing"
+    }
   }
 }

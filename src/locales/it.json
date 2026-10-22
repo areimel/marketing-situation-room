@@ -3743,5 +3743,10 @@
       "description": "Attiva le fonti su Iran, Israele, Golfo e regioni curde"
     },
     "unavailable": "Il preset {{preset}} non è disponibile con i pannelli attuali"
+  },
+  "marketing": {
+    "header": {
+      "panelCategory": "Marketing"
+    }
   }
 }

@@ -3703,5 +3703,10 @@
       "description": "イラン、イスラエル、湾岸、クルド地域のソースを有効にします"
     },
     "unavailable": "{{preset}}プリセットは現在のパネルでは利用できません"
+  },
+  "marketing": {
+    "header": {
+      "panelCategory": "Marketing"
+    }
   }
 }

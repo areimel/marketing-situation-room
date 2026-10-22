@@ -3703,5 +3703,10 @@
       "description": "이란, 이스라엘, 걸프 및 쿠르드 지역 소스를 활성화합니다"
     },
     "unavailable": "현재 패널에서는 {{preset}} 프리셋을 사용할 수 없습니다"
+  },
+  "marketing": {
+    "header": {
+      "panelCategory": "Marketing"
+    }
   }
 }

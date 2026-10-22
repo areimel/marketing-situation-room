@@ -3723,5 +3723,10 @@
       "description": "Aktivera källor om Iran, Israel, Gulfen och kurdiska regioner"
     },
     "unavailable": "Paketet {{preset}} är inte tillgängligt med dina nuvarande paneler"
+  },
+  "marketing": {
+    "header": {
+      "panelCategory": "Marketing"
+    }
   }
 }

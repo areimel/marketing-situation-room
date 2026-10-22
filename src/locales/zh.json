@@ -3703,5 +3703,10 @@
       "description": "启用伊朗、以色列、海湾和库尔德地区来源"
     },
     "unavailable": "当前面板无法使用{{preset}}预设"
+  },
+  "marketing": {
+    "header": {
+      "panelCategory": "Marketing"
+    }
   }
 }

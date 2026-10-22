@@ -3754,5 +3754,10 @@
       "description": "Omogućite izvore o Iranu, Izraelu, Zaljevu i kurdskim regijama"
     },
     "unavailable": "Paket {{preset}} nije dostupan s vašim trenutačnim panelima"
+  },
+  "marketing": {
+    "header": {
+      "panelCategory": "Marketing"
+    }
   }
 }
