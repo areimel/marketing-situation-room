@@ -7,6 +7,7 @@ import { mkdir, readFile, writeFile } from 'fs/promises';
 import { brotliCompress } from 'zlib';
 import { promisify } from 'util';
 import pkg from './package.json';
+import { pinPrepaintVariant } from './shared/pin-prepaint-variant';
 import { getSentryBuildMetadata } from './shared/sentry-build-metadata';
 import { appendChunkOwnership, chunkHasFirstPartyModule } from './shared/chunk-ownership';
 import { VARIANT_META, type VariantMeta } from './src/config/variant-meta';
@@ -279,10 +280,7 @@ function htmlVariantPlugin(activeMeta: VariantMeta, activeVariant: string, isDes
       // Desktop builds: inject build-time variant into the inline script so data-variant is set
       // before CSS loads. Web builds always use 'full' — runtime hostname detection handles variants.
       if (activeVariant !== 'full') {
-        result = result.replace(
-          /if\(v\)document\.documentElement\.dataset\.variant=v;/,
-          `v='${activeVariant}';document.documentElement.dataset.variant=v;`
-        );
+        result = pinPrepaintVariant(result, activeVariant);
       }
 
       // Desktop CSP: inject localhost wildcard for dynamic sidecar port.

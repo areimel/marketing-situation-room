@@ -4,6 +4,8 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import vm from 'node:vm';
+import { pinPrepaintVariant } from '../shared/pin-prepaint-variant.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const indexHtml = readFileSync(resolve(__dirname, '../index.html'), 'utf-8');
@@ -39,5 +41,22 @@ describe('variant inline bootstrap', () => {
       csp.includes(`'sha256-${hash}'`),
       `Vercel Content-Security-Policy must include sha256-${hash} for the inline variant bootstrap script`,
     );
+  });
+
+  it('keeps the pinned-variant prepaint script syntactically valid', () => {
+    const pinned = pinPrepaintVariant(indexHtml, 'marketing');
+    const src = pinned.match(/<script data-wm-prepaint>([\s\S]*?)<\/script>/)?.[1];
+    assert.ok(src);
+    assert.doesNotThrow(() => new vm.Script(src));
+    const root = { dataset: {}, classList: { add() {} }, removeAttribute() {} };
+    const ctx = {
+      location: { hostname: 'example.com' },
+      localStorage: { getItem: () => null, removeItem() {} },
+      window: { self: 1, top: 1 },
+      document: { documentElement: root },
+    };
+    ctx.window.matchMedia = undefined;
+    vm.runInNewContext(src, ctx);
+    assert.equal(root.dataset.variant, 'marketing');
   });
 });
