@@ -160,6 +160,7 @@
 *Could not find public function for 'intelHistory:retract'*
 *Could not find public function for 'intelHistory:search'*
 *Could not find public function for 'intelHistory:timeline'*
+*Could not find public function for 'marketing/access:getMemberByEmail'*
 *Could not find public function for 'mcpProTokens:internalRevokeProMcpToken'*
 *Could not find public function for 'mcpProTokens:issueProMcpToken'*
 *Could not find public function for 'mcpProTokens:touchProMcpTokenLastUsed'*

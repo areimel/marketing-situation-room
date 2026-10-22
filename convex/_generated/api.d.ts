@@ -59,6 +59,8 @@ import type * as lib_identitySigning from "../lib/identitySigning.js";
 import type * as lib_iso2 from "../lib/iso2.js";
 import type * as lib_notificationEmail from "../lib/notificationEmail.js";
 import type * as lib_shards from "../lib/shards.js";
+import type * as marketing_access from "../marketing/access.js";
+import type * as marketing_validators from "../marketing/validators.js";
 import type * as mcpProTokens from "../mcpProTokens.js";
 import type * as notificationChannels from "../notificationChannels.js";
 import type * as payments_backfillCustomerNormalizedEmail from "../payments/backfillCustomerNormalizedEmail.js";
@@ -141,6 +143,8 @@ declare const fullApi: ApiFromModules<{
   "lib/iso2": typeof lib_iso2;
   "lib/notificationEmail": typeof lib_notificationEmail;
   "lib/shards": typeof lib_shards;
+  "marketing/access": typeof marketing_access;
+  "marketing/validators": typeof marketing_validators;
   mcpProTokens: typeof mcpProTokens;
   notificationChannels: typeof notificationChannels;
   "payments/backfillCustomerNormalizedEmail": typeof payments_backfillCustomerNormalizedEmail;
