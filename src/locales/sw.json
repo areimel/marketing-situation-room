@@ -3726,7 +3726,42 @@
   },
   "marketing": {
     "header": {
-      "panelCategory": "Masoko"
+      "panelCategory": "Masoko",
+      "switcherLabel": "MARKETING"
+    },
+    "panel": {
+      "comingSoon": "Coming soon — this panel is being built."
+    },
+    "panels": {
+      "clientRoster": "Client Roster",
+      "alerts": "Client Alerts",
+      "weatherAlerts": "Weather Alerts",
+      "calendar": "Marketing Calendar",
+      "localMentions": "Local Mentions",
+      "demandTrends": "Demand Trends"
+    },
+    "empty": {
+      "noClients": "Add your first client to see signals here."
+    },
+    "common": {
+      "sourceUnavailable": "Source unavailable — showing nothing until it recovers."
+    },
+    "category": {
+      "hvac": "HVAC",
+      "roofing": "Roofing",
+      "plumbing": "Plumbing",
+      "electrical": "Electrical",
+      "landscaping": "Landscaping",
+      "pest-control": "Pest control",
+      "dental": "Dental",
+      "medical": "Medical",
+      "legal": "Legal",
+      "restaurant": "Restaurant",
+      "retail": "Retail",
+      "auto": "Auto",
+      "real-estate": "Real estate",
+      "fitness": "Fitness",
+      "other": "Other"
     }
   }
 }

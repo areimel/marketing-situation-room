@@ -23,4 +23,9 @@ describe('variant switcher navigation', () => {
     expect(variantSwitcherHref('tech', 'full', true)).toBe('#');
     expect(variantSwitcherHref('tech', 'tech', false)).toBe('#');
   });
+
+  it('never links the internal marketing variant from the public switcher', () => {
+    expect(Object.keys(VARIANT_SWITCHER_DASHBOARD_URLS)).not.toContain('marketing');
+    expect(Object.prototype.hasOwnProperty.call(VARIANT_SWITCHER_DASHBOARD_URLS, 'marketing')).toBe(false);
+  });
 });

@@ -1072,6 +1072,17 @@ export class PanelLayoutManager implements AppModule {
         const vHref = (v: keyof typeof VARIANT_SWITCHER_DASHBOARD_URLS) =>
           variantSwitcherHref(v, SITE_VARIANT, local);
         const vTarget = (v: string) => !local && SITE_VARIANT !== v && inIframe ? 'target="_blank" rel="noopener"' : '';
+        // The internal marketing build never links to the public variants.
+        if (SITE_VARIANT === 'marketing') {
+          return `
+            <a href="#"
+               class="variant-option active"
+               data-variant="marketing"
+               title="${t('marketing.header.switcherLabel')} ${t('common.currentVariant')}">
+              <span class="variant-icon">📣</span>
+              <span class="variant-label">${t('marketing.header.switcherLabel')}</span>
+            </a>`;
+        }
         return `
             <a href="${vHref('full')}"
                class="variant-option ${SITE_VARIANT === 'full' ? 'active' : ''}"
@@ -1185,7 +1196,9 @@ export class PanelLayoutManager implements AppModule {
         </div>
         <div class="mobile-menu-divider"></div>
         ${(() => {
-        const variants = [
+        const variants = SITE_VARIANT === 'marketing' ? [
+          { key: 'marketing', icon: '📣', label: t('marketing.header.switcherLabel') },
+        ] : [
           { key: 'full', icon: '🌍', label: t('header.world') },
           { key: 'tech', icon: '💻', label: t('header.tech') },
           { key: 'finance', icon: '📈', label: t('header.finance') },
@@ -2753,6 +2766,14 @@ export class PanelLayoutManager implements AppModule {
     this.lazyPanel('energy-risk-overview', () =>
       this.importPanel('energy-risk-overview', () => import('@/components/EnergyRiskOverviewPanel'), 'EnergyRiskOverviewPanel', (EnergyRiskOverviewPanel) => new EnergyRiskOverviewPanel()),
     );
+    if (SITE_VARIANT === 'marketing') {
+      this.lazyDefaultPanel('client-roster', () => import('@/components/marketing/ClientRosterPanel'), 'ClientRosterPanel');
+      this.lazyDefaultPanel('marketing-alerts', () => import('@/components/marketing/MarketingAlertsPanel'), 'MarketingAlertsPanel');
+      this.lazyDefaultPanel('weather-alerts', () => import('@/components/marketing/WeatherAlertsPanel'), 'WeatherAlertsPanel');
+      this.lazyDefaultPanel('marketing-calendar', () => import('@/components/marketing/MarketingCalendarPanel'), 'MarketingCalendarPanel');
+      this.lazyDefaultPanel('local-mentions', () => import('@/components/marketing/LocalMentionsPanel'), 'LocalMentionsPanel');
+      this.lazyDefaultPanel('demand-trends', () => import('@/components/marketing/DemandTrendsPanel'), 'DemandTrendsPanel');
+    }
     this.lazyDefaultPanel('polymarket', () => import('@/components/PredictionPanel'), 'PredictionPanel');
 
     this.createNewsPanel('gov', 'panels.gov');
