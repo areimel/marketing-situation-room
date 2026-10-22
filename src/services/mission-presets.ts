@@ -395,6 +395,66 @@ export const MISSION_PRESETS: readonly MissionPreset[] = [
       },
     },
   },
+  {
+    id: 'marketing-overview',
+    label: 'Agency Overview',
+    shortLabel: 'Overview',
+    description: 'Every client market at a glance: alerts, mentions, calendar, and demand.',
+    icon: 'M',
+    view: 'america',
+    zoom: 3.6,
+    timeRange: '24h',
+    variants: ['marketing'],
+    panels: [
+      'map',
+      'insights',
+      'marketing-alerts',
+      'local-mentions',
+      'marketing-calendar',
+      'demand-trends',
+      'platform-updates',
+    ],
+    layers: ['marketingClients', 'nwsAlerts', 'localMentions'],
+  },
+  {
+    id: 'marketing-client-focus',
+    label: 'Client Focus',
+    shortLabel: 'Client',
+    description: 'Drill into one client: its mentions, alerts, weather, and calendar.',
+    icon: 'C',
+    view: 'america',
+    zoom: 4.2,
+    timeRange: '7d',
+    variants: ['marketing'],
+    panels: [
+      'map',
+      'local-mentions',
+      'marketing-alerts',
+      'weather-alerts',
+      'marketing-calendar',
+      'client-roster',
+    ],
+    layers: ['marketingClients', 'localMentions', 'nwsAlerts'],
+  },
+  {
+    id: 'marketing-storm-watch',
+    label: 'Storm Watch',
+    shortLabel: 'Storms',
+    description: 'Weather-first: NWS warnings crossing client service areas.',
+    icon: 'W',
+    view: 'america',
+    zoom: 3.8,
+    timeRange: '24h',
+    variants: ['marketing'],
+    panels: [
+      'map',
+      'weather-alerts',
+      'marketing-alerts',
+      'local-mentions',
+      'client-roster',
+    ],
+    layers: ['nwsAlerts', 'marketingClients'],
+  },
 ];
 
 const DYNAMIC_PANEL_PREFIXES = ['cw-', 'mcp-'];
@@ -432,6 +492,9 @@ export function isMissionPresetAvailableForVariant(
   preset: MissionPreset,
   variant: string,
 ): boolean {
+  // The marketing variant is internal: only presets that opt in explicitly
+  // apply there, so unscoped global presets never leak onto it.
+  if (variant === 'marketing') return preset.variants?.includes('marketing') === true;
   if (!preset.variants || preset.variants.length === 0) return true;
   return preset.variants.includes(variant);
 }

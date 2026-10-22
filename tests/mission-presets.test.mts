@@ -12,6 +12,7 @@ import {
   DEFAULT_MAP_LAYERS,
   VARIANT_DEFAULTS,
   getEffectivePanelConfig,
+  getInitialPanelSettingsForVariant,
   FREE_MAX_PANELS,
   countFreePanelCapUsage,
   restoreProGatedPanels,
@@ -66,7 +67,7 @@ class MemoryStorage {
   }
 }
 
-const VARIANTS: MapVariant[] = ['full', 'tech', 'finance', 'commodity', 'energy', 'happy'];
+const VARIANTS: MapVariant[] = ['full', 'tech', 'finance', 'commodity', 'energy', 'happy', 'marketing'];
 
 let originalLocalStorage: PropertyDescriptor | undefined;
 let originalWindow: PropertyDescriptor | undefined;
@@ -549,7 +550,9 @@ async function loadEventHandlerManager(): Promise<EventHandlerManagerCtor> {
 
 function makePanelSettings(variant: string): Record<string, PanelConfig> {
   const settings: Record<string, PanelConfig> = {};
-  for (const key of Object.keys(ALL_PANELS)) {
+  // Includes the variant's own catalog, which this build's ALL_PANELS fences
+  // out for the internal marketing variant.
+  for (const key of Object.keys(getInitialPanelSettingsForVariant(variant))) {
     settings[key] = {
       ...getEffectivePanelConfig(key, variant),
       enabled: false,
@@ -656,6 +659,9 @@ describe('mission preset definitions', () => {
         'good-news-explorer',
         'nq-day-trader',
         'country-watcher',
+        'marketing-overview',
+        'marketing-client-focus',
+        'marketing-storm-watch',
       ],
     );
   });
@@ -684,8 +690,12 @@ describe('mission preset definitions', () => {
       assert.equal(new Set(preset.panels).size, preset.panels.length, `${preset.id} repeats panel ids`);
       assert.equal(new Set(preset.layers).size, preset.layers.length, `${preset.id} repeats layer ids`);
 
+      const variantCatalogs = (preset.variants ?? []).map((variant) => getInitialPanelSettingsForVariant(variant));
       for (const panelId of preset.panels) {
-        assert.ok(ALL_PANELS[panelId], `${preset.id} references unknown panel ${panelId}`);
+        assert.ok(
+          ALL_PANELS[panelId] || variantCatalogs.some((catalog) => catalog[panelId]),
+          `${preset.id} references unknown panel ${panelId}`,
+        );
       }
       for (const layerId of preset.layers) {
         assert.ok(LAYER_REGISTRY[layerId], `${preset.id} references unknown layer ${String(layerId)}`);
@@ -728,7 +738,8 @@ describe('applyMissionPresetToState', () => {
     assert.ok(financeIds.includes('nq-day-trader'));
     for (const variant of VARIANTS.filter((item) => item !== 'finance')) {
       const ids = getMissionPresetsForVariant(variant).map((preset) => preset.id);
-      assert.equal(ids.length, 8, `${variant} should keep the eight shared missions`);
+      // The internal marketing variant offers only its own opt-in presets.
+      if (variant !== 'marketing') assert.equal(ids.length, 8, `${variant} should keep the eight shared missions`);
       assert.ok(!ids.includes('nq-day-trader'), `${variant} must not offer NQ Day Trader`);
     }
 
