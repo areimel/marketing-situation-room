@@ -1,9 +1,10 @@
+import { downloadBrief } from './brief-download';
 import { mountEvidence } from './evidence';
 import './workspace.css';
 import { mountSignals } from './signals';
 
 const prefix = 'agency.workspace.v1.';
-type Client = { id: string; name: string };
+type Client = { id: string; name: string; demo?: boolean };
 
 function element<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string) {
   const node = document.createElement(tag);
@@ -112,7 +113,8 @@ export function mountWorkspace(root: HTMLElement) {
     grid.className = 'agency-grid';
     for (const [field, title] of [['daily-brief', 'Daily brief'], ['client-notes', 'Client notes']] as const) {
       const key = field + '.' + current.id;
-      const card = element('label', title);
+      const card = element('section');
+      const label = element('label', title);
       card.className = 'agency-card';
       const editor = element('textarea');
       editor.dataset.testid = field;
@@ -120,7 +122,16 @@ export function mountWorkspace(root: HTMLElement) {
       editor.placeholder = field === 'daily-brief' ? 'Write the daily brief…' : 'Add client context…';
       editor.value = read(key);
       editor.oninput = () => save(key, editor.value);
-      card.append(editor);
+      label.append(editor);
+      card.append(label);
+      if (field === 'daily-brief') {
+        const download = element('button', 'Download brief');
+        download.type = 'button';
+        download.disabled = !editor.value.trim();
+        editor.addEventListener('input', () => { download.disabled = !editor.value.trim(); });
+        download.onclick = () => downloadBrief(current.name, editor.value, current.demo === true);
+        card.append(download);
+      }
       grid.append(card);
     }
     const signals = element('section');
