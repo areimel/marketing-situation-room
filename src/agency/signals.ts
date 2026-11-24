@@ -1,11 +1,3 @@
-const feed = new URL('https://news.google.com/rss/search');
-feed.search = new URLSearchParams({
-  q: '("digital marketing" OR "advertising agencies" OR "paid search") when:7d',
-  hl: 'en-US',
-  gl: 'US',
-  ceid: 'US:en',
-}).toString();
-
 function headlineList(xml: string): HTMLUListElement {
   const rss = new DOMParser().parseFromString(xml, 'application/xml');
   const channel = rss.querySelector('rss > channel');
@@ -18,7 +10,7 @@ function headlineList(xml: string): HTMLUListElement {
     const href = item.querySelector('link')?.textContent?.trim();
     if (!title || !href || !URL.canParse(href)) continue;
     const url = new URL(href);
-    if (url.origin !== feed.origin || url.username || url.password || seen.has(url.href)) continue;
+    if (url.origin !== 'https://news.google.com' || url.username || url.password || seen.has(url.href)) continue;
     seen.add(url.href);
 
     const link = document.createElement('a');
@@ -51,8 +43,7 @@ export function mountSignals(root: HTMLElement, clientName: string): () => void 
 
   async function load(): Promise<void> {
     try {
-      const params = new URLSearchParams({ url: feed.href });
-      const response = await fetch(`/api/rss-proxy?${params}`, {
+      const response = await fetch('/api/agency-headlines', {
         signal: AbortSignal.any([lifetime.signal, AbortSignal.timeout(15000)]),
       });
       if (!response.ok) throw new Error('Feed unavailable');
