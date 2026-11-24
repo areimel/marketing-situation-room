@@ -1,7 +1,6 @@
-import { SUB_REQUEST_MARKER_HEADER } from './sub-request-admission';
 import { Ratelimit, type Duration } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
-import { getClientIp, hasUnprovenCloudflareClientIp, UNKNOWN_CLIENT_IP } from './client-ip';
+import { getClientIp, hasUnprovenCloudflareClientIp } from './client-ip';
 // @ts-expect-error — JS module, no declaration file
 import { captureSilentError } from '../../api/_sentry-edge.js';
 // @ts-expect-error — JS module, no declaration file
@@ -13,7 +12,7 @@ import { durationToSeconds, limitWithFallback, resetRateLimitFallbackForTest } f
 // the helpers' original home and existing callers import them from this
 // module (getClientIp: api/ask.ts, api/a2a.ts, api/mcp-proxy.ts;
 // UNKNOWN_CLIENT_IP: turnstile.ts; plus the rate-limit test suites).
-export { getClientIp, hasCloudflareTransitProof, hasUnprovenCloudflareClientIp, UNKNOWN_CLIENT_IP } from './client-ip';
+export { getClientIp, hasCloudflareTransitProof, hasUnprovenCloudflareClientIp } from './client-ip';
 
 // @upstash/redis defaults to 5 retries with exponential backoff (~4.3s total)
 // before surfacing an unreachable-Redis error. The node test runner sets
@@ -24,33 +23,6 @@ export { getClientIp, hasCloudflareTransitProof, hasUnprovenCloudflareClientIp, 
 // resilient default untouched. Mirrors the retry:false already shipped on the
 // MCP limiter to unblock the suite (PR #3963).
 const REDIS_TEST_RETRY_OPTS: { retry?: false } = process.env.NODE_TEST_CONTEXT ? { retry: false } : {};
-// @upstash/ratelimit v2 returns an allow-shaped result with reason="timeout"
-// when this deadline wins the Redis race. Endpoint policies inspect that
-// reason below and fail closed; keeping the SDK timeout enabled bounds the
-// outage latency instead of waiting for the platform function timeout.
-const ENDPOINT_RATE_LIMIT_TIMEOUT_MS = process.env.NODE_TEST_CONTEXT ? 250 : 5_000;
-// Abort the underlying Upstash fetch just before the SDK's availability-first
-// race expires. Without this, the SDK returns its timeout result but leaves the
-// Redis request alive in the isolate for an unbounded transport stall.
-const ENDPOINT_REDIS_ABORT_TIMEOUT_MS = process.env.NODE_TEST_CONTEXT ? 20 : 4_500;
-// The two deadlines are a PAIR, and the NODE_TEST_CONTEXT pair is deliberately
-// not the production ratio scaled down. Production's ordering is safe because
-// its 500ms gap dwarfs the few milliseconds the Upstash client needs to build a
-// request and call the `signal` factory in getEndpointRatelimit() -- the abort
-// timer does not start until then, while the SDK's decision timer starts at
-// limit(). Under the node test runner that arming cost is 8-71ms (tsx compile
-// plus per-test module re-import dominate it), so the original 25/20 pair left
-// as little as 1.1ms of headroom and inverted under `--test-concurrency=16`:
-// the decision resolved first and the transport was still pending when the
-// assertion read it. The gap therefore has to exceed the arming cost rather
-// than mirror the production ratio -- a short abort so the suite still fails
-// fast, with the decision deadline well behind it. Pinned by
-// tests/rate-limit.test.mts.
-export const __ENDPOINT_LIMITER_DEADLINES_FOR_TEST = Object.freeze({
-  decisionMs: ENDPOINT_RATE_LIMIT_TIMEOUT_MS,
-  abortMs: ENDPOINT_REDIS_ABORT_TIMEOUT_MS,
-});
-
 let ratelimit: Ratelimit | null = null;
 const GLOBAL_RATE_LIMIT = 600;
 const GLOBAL_RATE_WINDOW: Duration = '60 s';
@@ -339,208 +311,6 @@ export function formatTrustedRateLimitPrincipal(
  * for anything unrecognised so the limiter falls back to the caller's IP —
  * the same default the gateway itself uses when no principal was resolved.
  */
-export function readTrustedRateLimitPrincipal(headers: Headers): RateLimitOptions {
-  const raw = headers.get(TRUSTED_RATE_LIMIT_PRINCIPAL_HEADER);
-  if (!raw) return {};
-  const separator = raw.indexOf(':');
-  if (separator < 1) return {};
-  const scope = raw.slice(0, separator);
-  const principalUserId = raw.slice(separator + 1);
-  if (!principalUserId) return {};
-  if (scope !== 'session' && scope !== 'api_key') return {};
-  return { principalUserId, principalScope: scope };
-}
-
-/**
- * RFC 1918 172.16/12 second octets (16-31), as exact dotted prefixes. Kept
- * explicit rather than a single `'172.2'` prefix: `startsWith('172.2')` also
- * matches public space (`172.2.0.1`, `172.200.x.x`) and would misclassify
- * legitimate callers as unattributed.
- */
-const SUB_REQUEST_UNATTRIBUTED_172_16_12_PREFIXES = Object.freeze([
-  '172.16.',
-  '172.17.',
-  '172.18.',
-  '172.19.',
-  '172.20.',
-  '172.21.',
-  '172.22.',
-  '172.23.',
-  '172.24.',
-  '172.25.',
-  '172.26.',
-  '172.27.',
-  '172.28.',
-  '172.29.',
-  '172.30.',
-  '172.31.',
-]);
-
-/**
- * Egress-IP prefixes that prove a request was built by OUR OWN edge rather
- * than by an external caller. `getClientIp` resolves server-initiated fetches
- * to the platform's egress — the same value repeated for every caller — so the
- * dispatch path treats a caller identity starting with one of these as
- * unattributed instead of handing it the shared egress bucket.
- *
- * The `10/8`, `192.168/16`, and `169.254/16` ranges cover Vercel's internal /
- * NAT egress (link-local + RFC 1918). The 172.16/12 range is spelled out
- * octet-by-octet above.
- *
- * NOTE: a routable PUBLIC egress IP is intentionally NOT matched here. This
- * helper resolves the INBOUND caller's identity (see
- * `resolveServerSubRequestCharge`); a public IP on the inbound request names
- * a real external caller and must stay attributed. Detecting the egress side
- * (a public IP shared by every caller) is the job of the sub-request marker
- * below, not of this prefix list.
- */
-const SUB_REQUEST_UNATTRIBUTED_IP_PREFIXES = Object.freeze([
-  '10.',
-  ...SUB_REQUEST_UNATTRIBUTED_172_16_12_PREFIXES,
-  '192.168.',
-  '169.254.',
-]);
-
-/**
- * True when `identity` cannot name an external caller: the unknown sentinel
- * or an RFC 1918 / link-local egress range. Matching is exact on the sentinel
- * (case-insensitive, trimmed — mirroring `getClientIp`'s own normalisation)
- * and prefix-based on the dotted ranges above. Kept as a pure predicate so
- * the dispatch-layer test pins the shape without Redis.
- */
-export function isUnattributedSubRequestIdentity(identity: string): boolean {
-  const normalized = identity.trim().toLowerCase();
-  if (!normalized) return true;
-  if (normalized === UNKNOWN_CLIENT_IP) return true;
-  return SUB_REQUEST_UNATTRIBUTED_IP_PREFIXES.some((prefix) => normalized.startsWith(prefix));
-}
-
-export interface ServerSubRequestCharge {
-  /** Limiter options the caller must spend from — never the egress bucket. */
-  opts: EndpointRateLimitOptions;
-  /**
-   * True when the inbound request carries no initiating principal of its own
-   * (no stamped principal, no usable client IP). The sub-request must be
-   * refused rather than keyed to whatever IP the platform egress resolves to.
-   */
-  unattributed: boolean;
-}
-
-/**
- * Resolves the rate-limit identity a server-initiated sub-request must be
- * charged to, from the INBOUND caller request — the shared dispatch path for
- * every fan-out feature (batch today, any future fan-out tomorrow).
- *
- * A same-origin `fetch` re-derives `getClientIp` from the platform's egress,
- * so charging inside the sub-request hands every caller one shared bucket and
- * never touches the caller's own. Charge BEFORE dispatch instead, from the
- * inbound identity this returns:
- *   1. the gateway-stamped principal when present (the only trustworthy
- *      source — raw credential headers are unvalidated at the handler), or
- *   2. the inbound caller's IP, or
- *   3. `unattributed: true` when neither exists — the caller MUST refuse the
- *      sub-request rather than fall back to the egress IP.
- *
- * INBOUND ONLY: pass the caller's original request, never the re-dispatched
- * sub-request. A public egress IP on the inbound side names a real external
- * caller and stays attributed; the sub-request side is recognised by the
- * `SUB_REQUEST_MARKER_HEADER` admission verified by the gateway, not by this helper.
- *
- * The fallback is observable: refusal paths report through
- * `reportRateLimitDegraded` with the fixed stage
- * `chargeServerSubRequestOperation:unattributed-sub-request` (pathname travels
- * in the error message, not the stage, so Sentry grouping and the per-minute
- * dedup map stay low-cardinality), so the next fan-out that forgets to stamp
- * the principal surfaces in production logs/Sentry instead of silently
- * sharing an egress bucket. Prefer `chargeServerSubRequestOperation` below
- * over calling this directly: it takes the resolved `ServerSubRequestCharge`
- * as ONE object, so a new fan-out endpoint cannot resolve the identity and
- * then forget to honour `unattributed`. (#8399)
- */
-export function resolveServerSubRequestCharge(inbound: Request): ServerSubRequestCharge {
-  // Reject marked callers conservatively, whether the marker is genuine or
-  // forged. Only consumeSubRequestAdmission can authenticate an inner call.
-  if (inbound.headers.has(SUB_REQUEST_MARKER_HEADER)) {
-    return { opts: {}, unattributed: true };
-  }
-  const stamped = readTrustedRateLimitPrincipal(inbound.headers);
-  if (stamped.principalUserId) {
-    return { opts: stamped as EndpointRateLimitOptions, unattributed: false };
-  }
-  const callerIp = getClientIp(inbound);
-  if (callerIp && !isUnattributedSubRequestIdentity(callerIp)) {
-    return { opts: {}, unattributed: false };
-  }
-  return { opts: {}, unattributed: true };
-}
-
-/**
- * Refusal body for an unattributed sub-request. Carries a distinct `reason`
- * (`unattributed-sub-request`) so it is greppable in logs and distinguishable
- * from a genuine 429/503 the caller would have received directly.
- */
-export interface ServerSubRequestRefusal {
-  status: 429;
-  body: { error: string; reason: 'unattributed-sub-request' };
-}
-
-/**
- * Charges one server-initiated sub-operation against the CALLER's own budget
- * BEFORE it is dispatched. This is `chargeCaller` generalised out of the
- * batch handler so the next fan-out feature inherits it instead of
- * remembering to add it.
- *
- * Takes the `ServerSubRequestCharge` resolved by
- * `resolveServerSubRequestCharge` as ONE object — callers cannot resolve the
- * identity and then forget to honour `unattributed`, which the previous
- * split `(opts, unattributed)` signature allowed by omission.
- *
- * Returns `null` when the operation is admitted (the caller must dispatch
- * it), otherwise a refusal the caller must return WITHOUT dispatching:
- *   - an unattributed sub-request (no stamped principal AND no usable caller
- *     IP, or a request that already carries the sub-request marker) is
- *     refused with 429 `unattributed-sub-request` — fail closed rather than
- *     keying on the egress IP;
- *   - an endpoint-policy path charges `checkEndpointRateLimit` (fail-closed
- *     default preserved), everything else the global `checkRateLimit`,
- *     mirroring the gateway's two-phase order — a limiter refusal becomes the
- *     status/body the caller would have received directly.
- *
- * Account burst/daily and enterprise-key meters remain enforced by the inner
- * gateway; this pre-charge covers endpoint/global limits only.
- */
-export async function chargeServerSubRequestOperation(
-  inbound: Request,
-  pathname: string,
-  charge: ServerSubRequestCharge,
-): Promise<{ status: number; body: unknown } | null> {
-  if (charge.unattributed) {
-    // Fixed stage: `pathname` is attacker-controlled (any documented-RPC
-    // shape passes validation), so it travels in the message — embedding it
-    // in the stage would mint one Sentry dedup entry per distinct path and
-    // defeat the low-cardinality grouping documented above.
-    reportRateLimitDegraded(
-      'chargeServerSubRequestOperation:unattributed-sub-request',
-      new Error(`Server-initiated sub-request for ${pathname} without a stamped principal or caller IP — refused instead of keying on egress IP`),
-    );
-    const refusal: ServerSubRequestRefusal = {
-      status: 429,
-      body: { error: 'Too many requests', reason: 'unattributed-sub-request' },
-    };
-    return refusal;
-  }
-  const refusal = await checkRateLimit(inbound, {}, charge.opts);
-  if (!refusal) return null;
-
-  let body: unknown;
-  try {
-    body = await refusal.json();
-  } catch {
-    body = {};
-  }
-  return { status: refusal.status, body };
-}
-
 function getPrincipalRateLimitIdentifier(
   principalUserId?: string,
   scope: PrincipalRateLimitScope = 'session',

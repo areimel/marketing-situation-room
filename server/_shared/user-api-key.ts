@@ -7,12 +7,8 @@
  */
 
 import { cachedFetchJson, deleteRedisKey } from './redis';
-import {
-  COMPANY_MONITORING_RPC_SCOPES,
-  type CompanyMonitoringApiScope,
-} from '../../shared/company-monitoring-contract';
-
-const COMPANY_MONITORING_SCOPES = new Set<string>(Object.values(COMPANY_MONITORING_RPC_SCOPES));
+// Recognize previously issued scoped records so they are denied by the unscoped-key gate.
+const RETIRED_KEY_SCOPES = new Set(['company_monitoring:read', 'company_monitoring:write']);
 
 interface UserKeyResult {
   userId: string;
@@ -28,7 +24,7 @@ interface UserKeyResult {
    */
   keyId?: string;
   name?: string;
-  scopes?: CompanyMonitoringApiScope[];
+  scopes?: unknown[];
   companyMonitoringAccountId?: string;
 }
 
@@ -91,7 +87,7 @@ function isUserKeyResult(value: unknown): value is UserKeyResult {
     candidate.companyMonitoringAccountId.length === 0
   ) return false;
   return new Set(candidate.scopes).size === candidate.scopes.length &&
-    candidate.scopes.every((scope) => typeof scope === 'string' && COMPANY_MONITORING_SCOPES.has(scope));
+    candidate.scopes.every((scope) => typeof scope === 'string' && RETIRED_KEY_SCOPES.has(scope));
 }
 
 /** Generic gateway/MCP auth accepts only legacy, unscoped user API keys. */
