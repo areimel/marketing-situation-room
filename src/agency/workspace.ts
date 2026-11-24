@@ -1,3 +1,5 @@
+import { element } from './dom';
+import { demoPortfolio } from './demo';
 import { downloadBrief } from './brief-download';
 import { mountEvidence } from './evidence';
 import './workspace.css';
@@ -6,11 +8,6 @@ import { mountSignals } from './signals';
 const prefix = 'agency.workspace.v1.';
 type Client = { id: string; name: string; demo?: boolean };
 
-function element<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string) {
-  const node = document.createElement(tag);
-  if (text !== undefined) node.textContent = text;
-  return node;
-}
 
 export function mountWorkspace(root: HTMLElement) {
   const workspace = element('section');
@@ -58,14 +55,40 @@ export function mountWorkspace(root: HTMLElement) {
     }
   }
   try {
-    for (const key of Object.keys(localStorage)) {
+    const keys = Object.keys(localStorage);
+    for (const key of keys) {
       if (!key.startsWith(prefix + 'client.')) continue;
       const name = localStorage.getItem(key);
-      if (name?.trim()) clients.push({ id: key.slice((prefix + 'client.').length), name });
+      if (name?.trim()) {
+        const id = key.slice((prefix + 'client.').length);
+        clients.push({ id, name, demo: demoPortfolio.some(example => example.id === id) });
+      }
     }
     selected = localStorage.getItem(prefix + 'selected') ?? '';
+    if (!keys.some(key => key.startsWith(prefix))) seedDemo();
   } catch {
-    status.textContent = 'Saved clients could not be loaded from this browser.';
+    if (clients.length === 0) seedDemo(false);
+    status.textContent = 'Saved clients could not be loaded. Changes may last for this session only.';
+  }
+
+  function seedDemo(persist = true) {
+    const write = persist ? save : (key: string, value: string) => session.set(key, value);
+    write('demo-initialized', '1');
+    for (const example of demoPortfolio) {
+      const { id, name, brief, notes, brand, source, change } = example;
+      clients.push({ id, name, demo: true });
+      write('client.' + id, name);
+      write('daily-brief.' + id, brief);
+      write('client-notes.' + id, notes);
+      write('evidence.' + id, JSON.stringify([{ brand, source, change }]));
+    }
+    selected = demoPortfolio[0]!.id;
+    write('selected', selected);
+  }
+
+  function briefPreview(value: string) {
+    const compact = value.trim().replace(/\s+/g, ' ');
+    return compact.length > 80 ? compact.slice(0, 79).trimEnd() + '…' : compact || 'No brief yet';
   }
 
   let cleanSignals: (() => void) | undefined;
@@ -74,6 +97,7 @@ export function mountWorkspace(root: HTMLElement) {
     list.replaceChildren();
     detail.replaceChildren();
     const current = clients.find(client => client.id === selected) ?? clients[0];
+    let activePreview: HTMLElement | undefined;
     for (const client of clients) {
       const item = element('li');
       const button = element('button', client.name);
@@ -84,7 +108,12 @@ export function mountWorkspace(root: HTMLElement) {
         render();
         list.querySelector<HTMLElement>('[aria-pressed="true"]')?.focus();
       };
+      const preview = element('p', briefPreview(read('daily-brief.' + client.id)));
+      preview.className = 'agency-brief-preview';
+      if (client === current) activePreview = preview;
       item.append(button);
+      if (client.demo) item.append(element('small', 'Demo client'));
+      item.append(preview);
       list.append(item);
     }
     if (!current) {
@@ -121,7 +150,10 @@ export function mountWorkspace(root: HTMLElement) {
       editor.rows = 6;
       editor.placeholder = field === 'daily-brief' ? 'Write the daily brief…' : 'Add client context…';
       editor.value = read(key);
-      editor.oninput = () => save(key, editor.value);
+      editor.oninput = () => {
+        save(key, editor.value);
+        if (field === 'daily-brief' && activePreview) activePreview.textContent = briefPreview(editor.value);
+      };
       label.append(editor);
       card.append(label);
       if (field === 'daily-brief') {
@@ -136,7 +168,9 @@ export function mountWorkspace(root: HTMLElement) {
     }
     const signals = element('section');
     signals.dataset.testid = 'client-signals';
-    detail.append(element('h2', current.name), rename, grid, signals);
+    detail.append(element('h2', current.name));
+    if (current.demo) detail.append(element('p', 'Demo client · Fictional portfolio and sample competitor evidence'));
+    detail.append(rename, grid, signals);
     const evidenceKey = 'evidence.' + current.id;
     detail.append(mountEvidence(read(evidenceKey), value => save(evidenceKey, value)));
     cleanSignals = mountSignals(signals, current.name);

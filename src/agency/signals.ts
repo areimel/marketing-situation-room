@@ -1,3 +1,5 @@
+import { element, sourceLink } from './dom';
+
 function headlineList(xml: string): HTMLUListElement {
   const rss = new DOMParser().parseFromString(xml, 'application/xml');
   const channel = rss.querySelector('rss > channel');
@@ -13,11 +15,7 @@ function headlineList(xml: string): HTMLUListElement {
     if (url.origin !== 'https://news.google.com' || url.username || url.password || seen.has(url.href)) continue;
     seen.add(url.href);
 
-    const link = document.createElement('a');
-    link.href = url.href;
-    link.textContent = title;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
+    const link = sourceLink(url.href, title);
     const row = document.createElement('li');
     row.append(link);
     list.append(row);
@@ -29,8 +27,7 @@ function headlineList(xml: string): HTMLUListElement {
 export function mountSignals(root: HTMLElement, clientName: string): () => void {
   const lifetime = new AbortController();
   const section = document.createElement('section');
-  const heading = document.createElement('h2');
-  heading.textContent = 'Marketing headlines';
+  const heading = element('h2', 'Marketing headlines');
   const context = document.createElement('p');
   context.textContent = clientName
     ? `Industry coverage for the ${clientName} workspace. Shared across clients.`

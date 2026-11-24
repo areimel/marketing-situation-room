@@ -1,3 +1,5 @@
+import { sourceLink } from './dom';
+
 type Evidence = { brand: string; source: string; change: string };
 
 function webUrl(value: string) {
@@ -37,11 +39,7 @@ export function mountEvidence(stored: string, save: (value: string) => void) {
       brand.textContent = entry.brand;
       const change = document.createElement('p');
       change.textContent = entry.change;
-      const source = document.createElement('a');
-      source.href = entry.source;
-      source.textContent = 'View source';
-      source.target = '_blank';
-      source.rel = 'noopener noreferrer';
+      const source = sourceLink(entry.source, 'View source');
       const remove = document.createElement('button');
       remove.textContent = 'Remove evidence';
       remove.onclick = () => {
