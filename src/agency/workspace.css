@@ -1,0 +1,55 @@
+.agency-workspace {
+  --ink: #192c31;
+  --muted: #495f65;
+  --line: #bfcdcb;
+  --accent: #075f57;
+  --surface: #fff;
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: clamp(1rem, 3vw, 3rem);
+  background: #f2f5f2;
+  color: var(--ink);
+  color-scheme: light;
+  font: 1rem/1.5 "IBM Plex Sans", system-ui, sans-serif;
+  overflow-wrap: anywhere;
+}
+
+.agency-workspace *,
+.agency-workspace *::before,
+.agency-workspace *::after {
+  box-sizing: inherit;
+}
+
+.agency-workspace :where(h1, h2, h3, p) {
+  margin-block: 0 .6em;
+}
+
+.agency-workspace h1 {
+  font-size: clamp(1.75rem, 4vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: -.035em;
+}
+
+.agency-workspace a {
+  color: var(--accent);
+  text-underline-offset: .2em;
+}
+
+.agency-meta {
+  color: var(--muted);
+  font-size: .875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.agency-header {
+  padding-block-end: 1rem;
+  border-bottom: 2px solid var(--ink);
+}
+
+.agency-card {
+  min-width: 0;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  border: 1px solid var(--line);
+  border-radius: .5rem;
+  background: var(--surface);
+}
