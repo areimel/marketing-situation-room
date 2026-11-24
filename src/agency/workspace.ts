@@ -40,10 +40,11 @@ export function mountWorkspace(root: HTMLElement) {
 
   const clients: Client[] = [];
   let selected = '';
+  const defaults = new Map<string, string>();
   const session = new Map<string, string>();
   function read(key: string) {
-    try { return session.get(key) ?? localStorage.getItem(prefix + key) ?? ''; }
-    catch { return session.get(key) ?? ''; }
+    try { return session.get(key) ?? localStorage.getItem(prefix + key) ?? defaults.get(key) ?? ''; }
+    catch { return session.get(key) ?? defaults.get(key) ?? ''; }
   }
   function save(key: string, value: string) {
     session.set(key, value);
@@ -56,34 +57,36 @@ export function mountWorkspace(root: HTMLElement) {
   }
   try {
     const keys = Object.keys(localStorage);
+    if (localStorage.getItem(prefix + 'demo-portfolio') === '1') loadDemo();
     for (const key of keys) {
       if (!key.startsWith(prefix + 'client.')) continue;
       const name = localStorage.getItem(key);
       if (name?.trim()) {
         const id = key.slice((prefix + 'client.').length);
-        clients.push({ id, name, demo: demoPortfolio.some(example => example.id === id) });
+        const existing = clients.find(client => client.id === id);
+        if (existing) existing.name = name;
+        else clients.push({ id, name });
       }
     }
-    selected = localStorage.getItem(prefix + 'selected') ?? '';
-    if (!keys.some(key => key.startsWith(prefix))) seedDemo();
+    selected = localStorage.getItem(prefix + 'selected') ?? selected;
+    if (!keys.some(key => key.startsWith(prefix))) {
+      loadDemo();
+      save('demo-portfolio', '1');
+    }
   } catch {
-    if (clients.length === 0) seedDemo(false);
+    if (clients.length === 0) loadDemo();
     status.textContent = 'Saved clients could not be loaded. Changes may last for this session only.';
   }
 
-  function seedDemo(persist = true) {
-    const write = persist ? save : (key: string, value: string) => session.set(key, value);
-    write('demo-initialized', '1');
+  function loadDemo() {
     for (const example of demoPortfolio) {
       const { id, name, brief, notes, brand, source, change } = example;
       clients.push({ id, name, demo: true });
-      write('client.' + id, name);
-      write('daily-brief.' + id, brief);
-      write('client-notes.' + id, notes);
-      write('evidence.' + id, JSON.stringify([{ brand, source, change }]));
+      defaults.set('daily-brief.' + id, brief);
+      defaults.set('client-notes.' + id, notes);
+      defaults.set('evidence.' + id, JSON.stringify([{ brand, source, change }]));
     }
     selected = demoPortfolio[0]!.id;
-    write('selected', selected);
   }
 
   function briefPreview(value: string) {
