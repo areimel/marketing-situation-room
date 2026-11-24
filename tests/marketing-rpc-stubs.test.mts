@@ -13,6 +13,7 @@ import assert from 'node:assert/strict';
 import { afterEach, describe, it } from 'node:test';
 // @ts-expect-error Edge session helper is plain JavaScript.
 import { issueSessionToken } from '../api/_session.js';
+import { __resetRateLimitForTest } from '../server/_shared/rate-limit.ts';
 import { createDomainGateway, serverOptions } from '../server/gateway.ts';
 import { marketingHandler } from '../server/worldmonitor/marketing/v1/handler.ts';
 import { marketingUserAgent } from '../server/worldmonitor/marketing/v1/_user-agent.ts';
@@ -51,6 +52,7 @@ void _degradedShapes;
 
 const originalEnv = { ...process.env };
 afterEach(() => {
+  __resetRateLimitForTest();
   for (const key of Object.keys(process.env)) if (!(key in originalEnv)) delete process.env[key];
   Object.assign(process.env, originalEnv);
 });
@@ -91,6 +93,75 @@ describe('marketing cache tier (R5)', () => {
       assert.equal(response.headers.get('CDN-Cache-Control'), null);
       assert.equal(response.headers.get('Vercel-CDN-Cache-Control'), null);
     }
+  });
+
+  it('requires a validated unscoped user key and current API entitlement', async (t) => {
+    process.env.UPSTASH_REDIS_REST_URL = 'https://redis.example.test';
+    process.env.UPSTASH_REDIS_REST_TOKEN = 'fixture';
+    process.env.CONVEX_SITE_URL = 'https://convex.example.test';
+    process.env.CONVEX_SERVER_SHARED_SECRET = 'fixture-internal-secret';
+    const gateway = createDomainGateway(createMarketingServiceRoutes(marketingHandler, serverOptions));
+    let scoped = false;
+    let validUntil = Date.now() + 60_000;
+    let validated = 0;
+    let entitlements = 0;
+    t.mock.method(globalThis, 'fetch', async (url: string, init: RequestInit) => {
+      const { hostname, pathname } = new URL(url);
+      if (hostname === 'redis.example.test') {
+        if (pathname.toLowerCase().startsWith('/get/')) return Response.json({ result: null });
+        const commands = JSON.parse(String(init.body ?? 'null'));
+        const result = /eval/i.test(JSON.stringify(commands)) ? [100, 600] : null;
+        return Response.json(Array.isArray(commands?.[0]) ? [{ result }] : { result });
+      }
+      assert.equal(hostname, 'convex.example.test');
+      assert.equal(new Headers(init.headers).get('x-convex-shared-secret'), 'fixture-internal-secret');
+      if (pathname === '/api/internal-validate-api-key') {
+        assert.match(JSON.parse(String(init.body)).keyHash, /^[a-f0-9]{64}$/);
+        validated++;
+        return Response.json({ userId: 'fixture-user', ...(scoped
+          ? { scopes: ['company_monitoring:read'], companyMonitoringAccountId: 'retired' } : {}) });
+      }
+      assert.equal(pathname, '/api/internal-entitlements');
+      assert.equal(JSON.parse(String(init.body)).userId, 'fixture-user');
+      entitlements++;
+      return Response.json({ planKey: 'api', validUntil, features: { tier: 2, apiAccess: true, apiRateLimit: 100 } });
+    });
+    async function call(digit: string) {
+      return gateway(new Request(`https://worldmonitor.app${PATHS.weather}`, {
+        headers: { 'X-Api-Key': 'wm_' + digit.repeat(40) },
+      }));
+    }
+    assert.equal((await call('1')).status, 200);
+    validUntil = Date.now() - 1;
+    assert.equal((await call('2')).status, 403);
+    scoped = true;
+    assert.equal((await call('3')).status, 401);
+    assert.equal(validated, 3);
+    assert.equal(entitlements, 2);
+  });
+
+  it('returns the global limiter refusal to a valid session', async (t) => {
+    process.env.WM_SESSION_SECRET = 'fixture-signing-secret-with-at-least-32-characters';
+    process.env.UPSTASH_REDIS_REST_URL = 'https://redis.example.test';
+    process.env.UPSTASH_REDIS_REST_TOKEN = 'fixture';
+    const { token } = await issueSessionToken();
+    let calls = 0;
+    t.mock.method(globalThis, 'fetch', async (url: string, init: RequestInit) => {
+      assert.equal(new URL(url).hostname, 'redis.example.test');
+      const commands = JSON.parse(String(init.body));
+      assert.match(JSON.stringify(commands), /eval/i);
+      calls++;
+      const denial = { result: [-1, 600] };
+      return Response.json(Array.isArray(commands[0]) ? [denial] : denial);
+    });
+    const gateway = createDomainGateway(createMarketingServiceRoutes(marketingHandler, serverOptions));
+    const response = await gateway(new Request(`https://worldmonitor.app${PATHS.weather}`, {
+      headers: { 'X-WorldMonitor-Key': token },
+    }));
+    assert.equal(calls, 1);
+    assert.equal(response.status, 429);
+    assert.equal(response.headers.get('Cache-Control'), 'no-store');
+    assert.ok(response.headers.has('Retry-After'));
   });
 
   it('rejects unauthenticated and invalid-key requests on every marketing route', async () => {
