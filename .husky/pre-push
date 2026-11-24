@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 set -eu
-node scripts/check-local-secret-dumps.mjs
+node scripts/check-local-secret-dumps.mjs --pre-push "${1:-}"
 npm run typecheck
 npm run lint:boundaries
 npm run test:endpoints
