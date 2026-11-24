@@ -15,7 +15,7 @@ Open the local URL printed by Vite. Both `/` and `/dashboard` open the agency wo
 
 ## First visit
 
-Use **New client** to add an account. The roster and selected account are saved in this browser. Briefings belong to individual accounts. The Google News marketing feed is shared across clients. Live headlines require the RSS proxy and a reachable feed.
+Use **New client** to add an account. The roster and selected account are saved in this browser. Briefings belong to individual accounts. The Google News marketing feed is shared across clients. Use **Competitor evidence** to keep an observed change with its brand and source URL. Headlines use the shared agency feed endpoint and require network access.
 
 ## Working on the app
 
