@@ -1,6 +1,6 @@
-import { sourceLink } from './dom';
+import { element, sourceLink } from './dom';
 
-type Evidence = { brand: string; source: string; change: string };
+type Evidence = { brand: string; source: string; change: string; illustrative?: boolean };
 
 function webUrl(value: string) {
   const url = URL.parse(value);
@@ -39,7 +39,9 @@ export function mountEvidence(stored: string, save: (value: string) => void) {
       brand.textContent = entry.brand;
       const change = document.createElement('p');
       change.textContent = entry.change;
-      const source = sourceLink(entry.source, 'View source');
+      const source = entry.illustrative === true
+        ? element('small', 'Illustrative source · ' + new URL(entry.source).hostname)
+        : sourceLink(entry.source, 'View source');
       const remove = document.createElement('button');
       remove.textContent = 'Remove evidence';
       remove.onclick = () => {

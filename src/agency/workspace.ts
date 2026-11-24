@@ -84,7 +84,7 @@ export function mountWorkspace(root: HTMLElement) {
       clients.push({ id, name, demo: true });
       defaults.set('daily-brief.' + id, brief);
       defaults.set('client-notes.' + id, notes);
-      defaults.set('evidence.' + id, JSON.stringify([{ brand, source, change }]));
+      defaults.set('evidence.' + id, JSON.stringify([{ brand, source, change, illustrative: true }]));
     }
     selected = demoPortfolio[0]!.id;
   }
