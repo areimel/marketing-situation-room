@@ -155,3 +155,34 @@
 .agency-toolbar {
   align-items: end;
 }
+
+.agency-nav li {
+  display: grid;
+  gap: .3rem;
+  padding-bottom: .65rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.agency-nav small {
+  color: var(--accent);
+  font-weight: 650;
+}
+
+.agency-brief-preview {
+  margin: 0;
+  color: var(--muted);
+  font-size: .875rem;
+}
+
+.agency-card form {
+  display: grid;
+  gap: .75rem;
+}
+
+.agency-card form > button {
+  justify-self: start;
+}
+
+.agency-card label + button {
+  margin-top: .75rem;
+}
