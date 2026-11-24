@@ -1,3 +1,4 @@
+import { mountEvidence } from './evidence';
 import './workspace.css';
 import { mountSignals } from './signals';
 
@@ -87,6 +88,7 @@ export function mountWorkspace(root: HTMLElement) {
     }
     if (!current) {
       detail.append(element('h2', 'No clients yet'), element('p', 'Add a client to start their daily brief.'));
+      cleanSignals = mountSignals(detail, '');
       return;
     }
     const rename = element('form');
@@ -124,6 +126,8 @@ export function mountWorkspace(root: HTMLElement) {
     const signals = element('section');
     signals.dataset.testid = 'client-signals';
     detail.append(element('h2', current.name), rename, grid, signals);
+    const evidenceKey = 'evidence.' + current.id;
+    detail.append(mountEvidence(read(evidenceKey), value => save(evidenceKey, value)));
     cleanSignals = mountSignals(signals, current.name);
   }
 

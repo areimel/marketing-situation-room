@@ -7,7 +7,7 @@
 
     <title>Marketing Situation Room</title>
     <meta name="application-name" content="Marketing Situation Room" />
-    <meta name="description" content="Track local mentions, demand signals, weather alerts and upcoming events across client markets." />
+    <meta name="description" content="Monitor marketing headlines, record competitor evidence, and prepare briefs for agency clients." />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="theme-color" content="#101d24" />
     <meta property="og:type" content="website" />
@@ -39,31 +39,6 @@
     <main id="app">
       <p class="workspace-loading" role="status">Loading Marketing Situation Room…</p>
     </main>
-    <!-- Force-clear stale service worker if module scripts 404 (post-deploy cache mismatch) -->
-    <script>
-    (function(){
-      if(!('serviceWorker' in navigator))return;
-      var key='wm-sw-nuke';
-      var attempted=false;
-      try{if(sessionStorage.getItem(key))return}catch(e){}
-      window.addEventListener('error',function(e){
-        var t=e.target;var u=t&&(t.tagName==="SCRIPT"||t.tagName==="LINK")&&(t.src||t.href)||'';
-        if(u&&/\/assets\//.test(u)){
-          try{sessionStorage.setItem(key,'1')}catch(err){if(attempted)return;attempted=true}
-          navigator.serviceWorker.getRegistrations().then(function(regs){
-            var p=regs.map(function(r){return r.unregister()});
-            Promise.all(p).then(function(){
-              if(caches&&caches.keys){
-                caches.keys().then(function(ks){
-                  return Promise.all(ks.map(function(k){return caches.delete(k)}));
-                }).then(function(){location.reload()});
-              }else{location.reload()}
-            });
-          });
-        }
-      },true);
-    })()
-    </script>
-    <script type="module" src="/src/main.ts" nonce="wm-static-bootstrap"></script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
