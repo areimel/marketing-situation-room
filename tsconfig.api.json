@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": ["vite/client"],
+    "types": ["vite/client", "node"],
     "tsBuildInfoFile": "node_modules/.cache/tsconfig.api.tsbuildinfo"
   },
   "include": ["api", "src/generated", "server", "shared/mcp-host-policy.ts"],
