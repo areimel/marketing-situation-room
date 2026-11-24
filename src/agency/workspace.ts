@@ -1,4 +1,5 @@
 import './workspace.css';
+import { mountSignals } from './signals';
 
 const prefix = 'agency.workspace.v1.';
 type Client = { id: string; name: string };
@@ -65,7 +66,9 @@ export function mountWorkspace(root: HTMLElement) {
     status.textContent = 'Saved clients could not be loaded from this browser.';
   }
 
+  let cleanSignals: (() => void) | undefined;
   function render() {
+    cleanSignals?.();
     list.replaceChildren();
     detail.replaceChildren();
     const current = clients.find(client => client.id === selected) ?? clients[0];
@@ -118,7 +121,10 @@ export function mountWorkspace(root: HTMLElement) {
       card.append(editor);
       grid.append(card);
     }
-    detail.append(element('h2', current.name), rename, grid);
+    const signals = element('section');
+    signals.dataset.testid = 'client-signals';
+    detail.append(element('h2', current.name), rename, grid, signals);
+    cleanSignals = mountSignals(signals, current.name);
   }
 
   form.onsubmit = event => {
@@ -134,4 +140,8 @@ export function mountWorkspace(root: HTMLElement) {
     render();
   };
   render();
+  return () => {
+    cleanSignals?.();
+    workspace.remove();
+  };
 }
