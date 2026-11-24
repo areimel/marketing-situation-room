@@ -8,12 +8,7 @@ Run commands from the worktree under test. Inspect `git status --short --branch`
 first. For new work, use a branch from current `origin/main`. For existing PR work,
 use its current head and existing safe worktree.
 
-Check `git remote -v` before preflight. `origin` must identify `koala73/worldmonitor`
-for an upstream PR. Fork contributors should use the [remote layout above](#getting-started).
-In an existing clone, preserve its remotes and push URLs while adapting that layout.
-Do not add a second `fork` remote or overwrite an existing destination. Keep the
-existing PR's head branch and fork repository as the push target. A full upstream
-PR URL cannot override a fork-valued `origin` in these tools.
+Confirm that the target repository is `areimel/marketing-situation-room`. This repository is a fork. Use an explicit repository when invoking the GitHub CLI so it targets the agency project.
 
 ```bash
 npm run --silent agent:preflight -- --mode review --pr 456
@@ -46,18 +41,7 @@ Resolve each blocker's `reason` and `nextAction` before the affected action:
 - If `gh` resolves to an unsuitable wrapper, set `WM_GH_BIN` and `WM_GH_AUTH_BIN` to the installed authenticated CLI. Do not fabricate credentials.
 - A sandbox `listen EPERM` when Vite or `tsx` starts is an execution restriction. Obtain the required execution access and rerun the same check. An occupied port belongs to its current owner. Do not kill another run's server.
 
-Preflight is the primary bootstrap path. It does not link env files or run package
-lifecycle scripts. It runs the inventory generator directly with a minimal
-environment only in the current trusted checkout. If full bootstrap is needed,
-use `npm run worktree:bootstrap` in a trusted agent-owned worktree. For docs or test
-tooling, use `npm run worktree:bootstrap:test-only`.
-
-Full bootstrap can link env files. Link only `.env.local` and `.env`, never
-`.env.vercel-backup` or `.env.vercel-export`. If Git cannot infer the source checkout,
-use `WM_ENV_SOURCE=/path/to/worldmonitor npm run worktree:env`. Check
-`git status --short` after setup and remove only incidental changes you created. A credential
-available in another checkout does not prove this process can use it. Run checks
-that need no credentials and report the remaining gate.
+Preflight checks local dependency readiness. For a clean checkout, install with `npm ci`. Keep credentials out of version control and use disposable test data. The agency browser workflow and deterministic tests require no external credentials.
 
 For an unreviewed third-party checkout, run `agent:preflight` and `agent:pr-snapshot`
 from a clean trusted worktree with `--root /path/to/untrusted-checkout` and
@@ -78,14 +62,12 @@ Run the checks listed in [AGENTS.md](AGENTS.md). Browser tests cover the desktop
 ## Pull Request Process
 
 1. Keep one feature or fix per PR. Check for an existing PR before creating one. Push fixes to that PR's head, including its original fork remote when maintainer edits are enabled. Never open a replacement without explicit authorization.
-2. Follow [the completion workflow](#complete-one-change). Update docs when behavior or contracts change. Run the required checks for affected code and variants. In the description, state the user outcome, evidence, and unverified paths. Link the related issue.
+2. Follow [the completion workflow](#complete-one-change). Update docs when behavior or contracts change. Run the required checks for affected code. In the description, state the user outcome, evidence, and unverified paths. Link the related issue.
 3. Refresh the base and remote PR head before pushing. Confirm no unmerged paths, reconcile current `main`, and verify that local HEAD is the captured PR head or contains it. Rerun affected checks after conflict resolution. Never bypass the pre-push gate with `--no-verify`.
 4. Open the PR ready for review. Keep one owner responsible for relevant review and CI repairs on the same PR. Requesting reviewers, invoking review automation, merge, auto-merge, and deployment each require the applicable explicit authorization.
 5. Base recovery and follow-up PRs on `main`. A stacked PR whose parent merges and auto-deletes its branch can report `MERGED` while its commits never reach `main`.
 
-For a new contribution using the fork setup above, publish the branch with
-`git push --set-upstream fork HEAD`. Open its PR against `koala73/worldmonitor` on
-`main`. For an existing PR, use the head repository and branch recorded in its snapshot.
+For new contributions, open the PR against the agency repository's `main` branch. For an existing PR, use the head repository and branch recorded in its snapshot.
 
 ### Read PR state once per phase
 
@@ -95,9 +77,9 @@ alignment. Preflight performs the live `task-start` refresh. Pass `--pr` when HE
 cannot identify the PR.
 
 ```bash
-npm run --silent agent:pr-snapshot -- --pr 456
-npm run --silent agent:pr-snapshot -- --pr 456 --refresh --phase pre-push
-npm run --silent agent:pr-snapshot -- --pr 456 --refresh --phase final
+node scripts/agent-pr-snapshot.mjs --pr 456
+node scripts/agent-pr-snapshot.mjs --pr 456 --refresh --phase pre-push
+node scripts/agent-pr-snapshot.mjs --pr 456 --refresh --phase final
 ```
 
 During implementation, read the cached snapshot. Read review prose with

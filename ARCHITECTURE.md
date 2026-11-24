@@ -6,7 +6,7 @@ Vite serves the agency workspace as a single-page application. The root URL and 
 
 ## Client context
 
-[workspace.ts](src/agency/workspace.ts) assigns each new client a UUID. It saves the client name and current selection under the `agency.workspace.v1.` prefix in localStorage. If saving fails, the workspace reports the failure and keeps the roster in memory for the session.
+[workspace.ts](src/agency/workspace.ts) assigns each new client a UUID. It saves the client name and current selection under the `agency.workspace.v1.` prefix in localStorage. A new browser starts with a labeled fictional portfolio. Existing rosters keep their own clients. The brief download includes the selected client’s brief and identifies sample data. If saving fails, the workspace reports the failure and keeps the roster in memory for the session.
 
 [signals.ts](src/agency/signals.ts) requests Google News RSS through `/api/agency-headlines` with a fixed US marketing query covering the last seven days. All clients share the query. The renderer accepts up to six distinct links from the feed origin and displays separate messages for an empty result and an unavailable source. Its cleanup function aborts the request when the view is removed.
 

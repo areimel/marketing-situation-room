@@ -15,7 +15,7 @@ Open the local URL printed by Vite. Both `/` and `/dashboard` open the agency wo
 
 ## First visit
 
-Use **New client** to add an account. The roster and selected account are saved in this browser. Briefings belong to individual accounts. The Google News marketing feed is shared across clients. Use **Competitor evidence** to keep an observed change with its brand and source URL. Headlines use the shared agency feed endpoint and require network access.
+The first visit opens three labeled fictional clients with sample briefs and competitor observations. Choose a client to review its brief, or use **New client** for an agency account. The roster and selected account are saved in this browser. **Download brief** saves the selected client’s brief as a text file. Internal notes stay in the workspace. The Google News marketing feed is shared across clients. Use **Competitor evidence** to keep an observed change with its brand and source URL. Headlines use the shared agency feed endpoint and require network access.
 
 ## Working on the app
 
