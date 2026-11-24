@@ -87,6 +87,22 @@ describe('marketing cache tier (R5)', () => {
     }
   });
 
+  it('rejects unauthenticated and invalid-key requests on every marketing route', async () => {
+    process.env.WORLDMONITOR_VALID_KEYS = 'marketing-test-key';
+    const gateway = createDomainGateway(createMarketingServiceRoutes(marketingHandler, serverOptions));
+    for (const path of Object.values(PATHS)) {
+      for (const key of ['', 'incorrect']) {
+        const headers = new Headers({ Origin: 'https://worldmonitor.app' });
+        if (key) headers.set('X-WorldMonitor-Key', key);
+        const response = await gateway(new Request(`https://worldmonitor.app${path}`, {
+          method: path === PATHS.mentions ? 'POST' : 'GET',
+          headers,
+        }));
+        assert.equal(response.status, 401, path);
+      }
+    }
+  });
+
   it('a mentions request through the gateway is served Cache-Control: no-store', async () => {
     process.env.WORLDMONITOR_VALID_KEYS = 'marketing-test-key';
     delete process.env.UPSTASH_REDIS_REST_URL;

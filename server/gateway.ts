@@ -120,7 +120,7 @@ import {
   type RequestReason,
 } from './_shared/usage';
 import { timingSafeEqual } from './_shared/internal-auth';
-import type { ServerOptions } from '../src/generated/server/worldmonitor/seismology/v1/service_server';
+import type { ServerOptions } from '../src/generated/server/worldmonitor/marketing/v1/service_server';
 import { validateGeneratedRequest } from './request-validator';
 import {
   buildMarkdownTwinResponse,
