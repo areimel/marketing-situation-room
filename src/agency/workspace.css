@@ -95,3 +95,41 @@
     gap: clamp(1.5rem, 3vw, 3rem);
   }
 }
+
+.agency-workspace :where(button, select, input, textarea) {
+  max-width: 100%;
+  min-height: 2.75rem;
+  padding: .55rem .8rem;
+  border: 1px solid #718781;
+  border-radius: .35rem;
+  color: var(--ink);
+  background: var(--surface);
+  font: inherit;
+}
+
+.agency-workspace textarea {
+  display: block;
+  width: 100%;
+  min-height: 9rem;
+  margin-block-start: .5rem;
+  resize: vertical;
+}
+
+.agency-workspace button:enabled {
+  cursor: pointer;
+}
+
+.agency-workspace button:enabled:hover {
+  background: #e1eeea;
+}
+
+.agency-workspace :where([aria-current="true"], [aria-current="page"], [aria-pressed="true"]) {
+  border-inline-start: .3rem solid var(--accent);
+  font-weight: 700;
+  background: #d7eae3;
+}
+
+.agency-workspace :focus-visible {
+  outline: 3px solid #155dc0;
+  outline-offset: 2px;
+}
