@@ -1,0 +1,16 @@
+{
+  "id": "/dashboard",
+  "name": "Marketing Situation Room",
+  "short_name": "Marketing Room",
+  "description": "Agency intelligence for client markets.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#101d24",
+  "theme_color": "#101d24",
+  "categories": ["business", "productivity"],
+  "icons": [
+    { "src": "/favico/marketing/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/favico/marketing/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
