@@ -1,6 +1,6 @@
 # AGENTS.md
 
-WorldMonitor is a real-time global intelligence dashboard for geopolitics, military activity, markets, climate, cyber threats, maritime traffic, and aviation. A TypeScript browser app uses Vercel Edge APIs, Railway data workers, and Upstash Redis. Tauri adds a desktop app and Node.js sidecar.
+Marketing Situation Room is an agency workspace for client briefs, competitor evidence, and shared marketing headlines. It uses a TypeScript browser app, Vite, Vercel Edge APIs, and marketing service contracts.
 
 ## Own the outcome
 
@@ -36,55 +36,14 @@ Merge, auto-merge, and deployment require explicit authorization in the current 
 
 ## Find the code and its checks
 
-| Change | Code and guidance | Required verification |
-|---|---|---|
-| Browser behavior | `src/components/`, `src/app/`, `src/services/`, `src/config/`; [architecture](ARCHITECTURE.md) | Focused behavior check, `npm run typecheck`, `npm run lint:boundaries` |
-| API and handlers | `api/`, `server/`; [endpoint guide](docs/adding-endpoints.mdx) | Focused handler check, `npm run typecheck:api`; `npm run test:sidecar` owns the `api/` node suites |
-| Data workers and cache | `scripts/`, `server/_shared/`; [health contracts](docs/health-endpoints.mdx) | Producer and reader checks with fixtures; separately record live freshness evidence when required |
-| Proto and generated clients | `proto/`, `src/generated/`; [code generation](CONTRIBUTING.md#working-with-sebuf-rpc-framework) | `make generate` requires buf + sebuf v0.11.1 plugins; verify generated diff |
-| Desktop and sidecar | `src-tauri/`; [architecture](ARCHITECTURE.md) | Focused Rust checks or `npm run test:sidecar` |
-| Tests and documentation | `tests/`, `e2e/`, `docs/`; [verification guide](CONTRIBUTING.md#verify-the-changed-path) | Relevant existing test or docs check, `git diff --check` |
+| Surface | Code | Verification |
+| --- | --- | --- |
+| Client selection, briefs, notes, evidence and headlines | `src/agency/`, `src/main.ts` | `npm run test:e2e`, `npm run typecheck`, `npm run lint` |
+| Shared industry feed | `api/agency-headlines.js` | `npm run test:endpoints` and local live feed check |
+| Marketing RPCs | `api/marketing/`, `server/`, `proto/`, `src/generated/` | `npm run typecheck:api`, `npm run test:endpoints` |
+| Membership and schema | `convex/marketing/`, `convex/schema.ts` | Convex typecheck and membership tests |
+| Build and serving | `vite.config.ts`, `vercel.json` | `npm run build`, direct visits to both `/` and `/dashboard` |
 
-## Landmarks
+Use the [browser verification skill](.agents/skills/verify-worldmonitor/SKILL.md) for dashboard work. Keep client data scoped to the selected account. The shared headlines request uses a fixed source query and never needs client names, notes, or observations.
 
-Grep the named symbol. Do not scan these files top to bottom.
-
-| Looking for | Where it is defined |
-|---|---|
-| Health keys and seed staleness | `api/health.js`: `BOOTSTRAP_KEYS`, `STANDALONE_KEYS`, `SEED_META`, `ON_DEMAND_KEYS`, `readSeedMeta`, `classifyKey` |
-| Shared seeder helpers | `scripts/_seed-utils.mjs`: `loadEnvFile`, `resolveSeedMetaKey`, `writeSeedMeta`, `writeExtraKeyWithMetaAtomically`, `withRetry` |
-| RPC access control | Split by design: `PREMIUM_RPC_PATHS` in `src/shared/premium-paths.ts`, `PUBLIC_NO_AUTH_RPC_PATHS` in `server/gateway.ts`, `validateApiKey` in `api/_api-key.js`, `isPublicSharedRpcRequest` in `src/shared/public-rpc-cache.ts` |
-| A shared term | `CONCEPTS.md`, one `###` heading per term; grep the term itself |
-
-Test path, command, and owning CI job. Read this instead of `.github/workflows/test.yml`.
-
-| Test path | Command | CI job |
-|---|---|---|
-| `tests/*.test.mjs`, `tests/*.test.mts`, `cli/test/`, `api/security/report.test.mjs` | `npm run test:data` | `unit-shards` |
-| `tests/dom/` | `npm run test:dom` | `dom-tests` |
-| `convex/__tests__/`, `server/__tests__/`, `src/services/correlation-engine/` | `npm run test:convex` | `convex-tests` |
-| `api/` node suites except `api/security/report.test.mjs`, and `src-tauri/` | `npm run test:sidecar` | `sidecar` |
-
-Find a suite by subject with `ls tests/ | grep <subject>` before searching the tree.
-
-## Critical boundaries
-
-The browser import direction is `types -> config -> services -> components -> app -> App.ts`. [lint-boundaries.mjs](scripts/lint-boundaries.mjs) enforces import boundaries.
-
-- Legacy `api/*.js` entries are self-contained JavaScript. Import same-directory `_*.js` helpers or packages, never `server/` or `src/`.
-- TypeScript API entries may import `server/` and `src/generated/`, but no other browser code. `server/` must not import `src/components/` or `src/app/`.
-- Edit proto definitions and regenerate. Never hand-edit `src/generated/`.
-- Use shared cache and response helpers. Use `cachedFetchJson()` when applicable. Include every request-varying parameter in cache keys.
-- Edge code must not import `node:http`, `node:https`, or `node:zlib`. Use `(...args) => globalThis.fetch(...args)`, never `fetch.bind(globalThis)`.
-- Include a `User-Agent` on server fetches. Stagger Yahoo Finance requests by 150 ms.
-- Wire new shared startup data into `api/bootstrap.js`. Keep opt-in panels on the on-demand path. Register datasets with no dashboard consumer as standalone health keys.
-- Redis seeds must write `seed-meta:<key>`. Load credentials through `loadEnvFile()`. Never add an env parser or resolve credentials from `$HOME` or an absolute literal.
-
-## Load guidance when relevant
-
-- For browser behavior, load [verify-worldmonitor](.agents/skills/verify-worldmonitor/SKILL.md). Start with an existing strict feature test. Use manual driving for the interaction being changed.
-- For Sentry events, load [sentry-triage](.agents/skills/sentry-triage/SKILL.md). Its default is read-only triage.
-- `.agents/skills/` contains repository engineering skills. `skills/` contains published product recipes for API and MCP consumers. They serve different users.
-- Read [documented solutions](docs/solutions/) when the affected area has a prior fix — organized by category directory (`security-issues/`, `logic-errors/`, `conventions/`, …) with YAML frontmatter (`module`, `component`, `problem_type`, `tags`) to grep. Use [CONCEPTS.md](CONCEPTS.md) for shared terms and [design philosophy](docs/architecture.mdx) for design decisions.
-
-Run the smallest meaningful proof first. Preserve useful regression coverage. Run heavy checks sequentially. Report failures honestly. Keep locally verified, PR ready, merged, deployed, observed in production, and acceptance complete as separate claims.
+Legacy JavaScript API entries must stay self-contained or use same-directory helpers. TypeScript API entries may import server and generated code. Keep browser components out of server code. Edit protobuf definitions and regenerate clients. Include a User-Agent on server fetches. Protect marketing RPC authorization and no-store response behavior.
