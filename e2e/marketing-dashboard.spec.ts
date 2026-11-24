@@ -13,7 +13,7 @@ for (const path of ['/', '/dashboard']) {
 }
 
 test('restores the selected client and keeps each daily brief with its client', async ({ page }) => {
-  await page.route('**/api/agency-headlines', route => route.fulfill({ json: { items: [] } }));
+  await page.route('**/api/agency-headlines', route => route.fulfill({ contentType: 'application/rss+xml', body: '<rss><channel/></rss>' }));
   await page.goto('/');
   const brief = page.getByRole('textbox', { name: 'Daily brief' });
   const clients = [
