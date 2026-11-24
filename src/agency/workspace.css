@@ -53,3 +53,45 @@
   border-radius: .5rem;
   background: var(--surface);
 }
+
+.agency-layout,
+.agency-grid,
+.agency-nav,
+.agency-main {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+}
+
+.agency-layout {
+  max-width: 90rem;
+  margin: 1.5rem auto;
+  align-items: start;
+}
+
+.agency-main,
+.agency-sidebar {
+  min-width: 0;
+}
+
+.agency-nav {
+  gap: .5rem;
+}
+
+.agency-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+}
+
+.agency-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem;
+}
+
+@media (min-width: 48rem) {
+  .agency-layout {
+    grid-template-columns: minmax(14rem, 1fr) minmax(0, 3fr);
+    gap: clamp(1.5rem, 3vw, 3rem);
+  }
+}
