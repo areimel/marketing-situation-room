@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package worldmonitor.marketing.v1;
+
+import "sebuf/http/annotations.proto";
+import "worldmonitor/marketing/v1/get_demand_trends.proto";
+import "worldmonitor/marketing/v1/list_calendar_events.proto";
+import "worldmonitor/marketing/v1/list_weather_alerts.proto";
+import "worldmonitor/marketing/v1/search_local_mentions.proto";
+
+// MarketingService serves the internal agency marketing situation room.
+service MarketingService {
+  option (sebuf.http.service_config) = {base_path: "/api/marketing/v1"};
+
+  // ListWeatherAlerts returns active NWS alerts for the requested US states.
+  rpc ListWeatherAlerts(ListWeatherAlertsRequest) returns (ListWeatherAlertsResponse) {
+    option (sebuf.http.config) = {path: "/list-weather-alerts", method: HTTP_METHOD_GET};
+  }
+
+  // ListCalendarEvents returns holidays and observances in a date window.
+  rpc ListCalendarEvents(ListCalendarEventsRequest) returns (ListCalendarEventsResponse) {
+    option (sebuf.http.config) = {path: "/list-calendar-events", method: HTTP_METHOD_GET};
+  }
+
+  // SearchLocalMentions finds local news mentions for client terms; POST so terms never reach URLs or CDN keys.
+  rpc SearchLocalMentions(SearchLocalMentionsRequest) returns (SearchLocalMentionsResponse) {
+    option (sebuf.http.config) = {path: "/search-local-mentions", method: HTTP_METHOD_POST};
+  }
+
+  // GetDemandTrends returns category demand series and trending search terms.
+  rpc GetDemandTrends(GetDemandTrendsRequest) returns (GetDemandTrendsResponse) {
+    option (sebuf.http.config) = {path: "/get-demand-trends", method: HTTP_METHOD_GET};
+  }
+}

@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package worldmonitor.marketing.v1;
+
+import "buf/validate/validate.proto";
+import "sebuf/http/annotations.proto";
+import "worldmonitor/marketing/v1/weather_alert.proto";
+
+// ListWeatherAlertsRequest selects the US states to read active alerts for.
+message ListWeatherAlertsRequest {
+  // Two-letter uppercase US state codes, such as TX or CA.
+  repeated string state_codes = 1 [
+    (sebuf.http.query) = {name: "state_codes"},
+    (buf.validate.field).repeated.max_items = 60,
+    (buf.validate.field).repeated.items.string.min_len = 2,
+    (buf.validate.field).repeated.items.string.max_bytes = 2,
+    (buf.validate.field).repeated.items.string.pattern = "^[A-Z]{2}$"
+  ];
+}
+
+// ListWeatherAlertsResponse carries the active alerts for the requested states.
+message ListWeatherAlertsResponse {
+  // Active alerts in the requested states.
+  repeated WeatherAlert alerts = 1;
+  // True when an upstream source failed and the list may be incomplete.
+  bool degraded = 2;
+}

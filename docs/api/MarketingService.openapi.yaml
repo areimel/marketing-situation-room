@@ -1,0 +1,457 @@
+openapi: 3.1.0
+info:
+    title: MarketingService API
+    version: 1.0.0
+paths:
+    /api/marketing/v1/list-weather-alerts:
+        get:
+            tags:
+                - MarketingService
+            summary: ListWeatherAlerts
+            description: ListWeatherAlerts returns active NWS alerts for the requested US states.
+            operationId: ListWeatherAlerts
+            parameters:
+                - name: state_codes
+                  in: query
+                  description: Two-letter uppercase US state codes, such as TX or CA.
+                  required: false
+                  style: form
+                  explode: true
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListWeatherAlertsResponse'
+                "400":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ValidationError'
+                default:
+                    description: Error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/marketing/v1/list-calendar-events:
+        get:
+            tags:
+                - MarketingService
+            summary: ListCalendarEvents
+            description: ListCalendarEvents returns holidays and observances in a date window.
+            operationId: ListCalendarEvents
+            parameters:
+                - name: from_date
+                  in: query
+                  description: First date of the window, inclusive, as YYYY-MM-DD.
+                  required: false
+                  schema:
+                    type: string
+                - name: to_date
+                  in: query
+                  description: Last date of the window, inclusive, as YYYY-MM-DD.
+                  required: false
+                  schema:
+                    type: string
+                - name: categories
+                  in: query
+                  description: Marketing category ids to include; an empty list means all categories.
+                  required: false
+                  style: form
+                  explode: true
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListCalendarEventsResponse'
+                "400":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ValidationError'
+                default:
+                    description: Error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/marketing/v1/search-local-mentions:
+        post:
+            tags:
+                - MarketingService
+            summary: SearchLocalMentions
+            description: SearchLocalMentions finds local news mentions for client terms; POST so terms never reach URLs or CDN keys.
+            operationId: SearchLocalMentions
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SearchLocalMentionsRequest'
+                required: true
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SearchLocalMentionsResponse'
+                "400":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ValidationError'
+                default:
+                    description: Error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/marketing/v1/get-demand-trends:
+        get:
+            tags:
+                - MarketingService
+            summary: GetDemandTrends
+            description: GetDemandTrends returns category demand series and trending search terms.
+            operationId: GetDemandTrends
+            parameters:
+                - name: categories
+                  in: query
+                  description: Marketing category ids to include; an empty list means all categories.
+                  required: false
+                  style: form
+                  explode: true
+                  schema:
+                    type: array
+                    items:
+                        type: string
+                - name: state_codes
+                  in: query
+                  description: Two-letter US state codes to localize trends to.
+                  required: false
+                  style: form
+                  explode: true
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetDemandTrendsResponse'
+                "400":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ValidationError'
+                default:
+                    description: Error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+components:
+    schemas:
+        Error:
+            type: object
+            properties:
+                message:
+                    type: string
+                    description: Error message (e.g., 'user not found', 'database connection failed')
+            description: Error is returned when a handler encounters an error. It contains a simple error message that the developer can customize.
+        FieldViolation:
+            type: object
+            properties:
+                field:
+                    type: string
+                    description: The field path that failed validation (e.g., 'user.email' for nested fields). For header validation, this will be the header name (e.g., 'X-API-Key')
+                description:
+                    type: string
+                    description: Human-readable description of the validation violation (e.g., 'must be a valid email address', 'required field missing')
+            required:
+                - field
+                - description
+            description: FieldViolation describes a single validation error for a specific field.
+        ValidationError:
+            type: object
+            properties:
+                violations:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/FieldViolation'
+                    description: List of validation violations
+            required:
+                - violations
+            description: ValidationError is returned when request validation fails. It contains a list of field violations describing what went wrong.
+        ListWeatherAlertsRequest:
+            type: object
+            properties:
+                stateCodes:
+                    type: array
+                    items:
+                        type: string
+                        maxItems: 60
+                        description: Two-letter uppercase US state codes, such as TX or CA.
+                    maxItems: 60
+            description: ListWeatherAlertsRequest selects the US states to read active alerts for.
+        ListWeatherAlertsResponse:
+            type: object
+            properties:
+                alerts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/WeatherAlert'
+                degraded:
+                    type: boolean
+                    description: True when an upstream source failed and the list may be incomplete.
+            description: ListWeatherAlertsResponse carries the active alerts for the requested states.
+        WeatherAlert:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Upstream NWS alert identifier.
+                event:
+                    type: string
+                    description: NWS event name, such as "Winter Storm Warning".
+                severity:
+                    type: string
+                    description: 'Mapped severity bucket: info, watch or warning.'
+                headline:
+                    type: string
+                    description: Short NWS headline for the alert.
+                areaDesc:
+                    type: string
+                    description: Human-readable area description from NWS.
+                onset:
+                    type: integer
+                    format: int64
+                    description: 'Alert onset time, Unix epoch milliseconds.. Warning: Values > 2^53 may lose precision in JavaScript'
+                expires:
+                    type: integer
+                    format: int64
+                    description: 'Alert expiry time, Unix epoch milliseconds.. Warning: Values > 2^53 may lose precision in JavaScript'
+                polygonGeojson:
+                    type: string
+                    description: Alert shape as a GeoJSON geometry string; empty when no shape is known.
+                zoneCodes:
+                    type: array
+                    items:
+                        type: string
+                        description: NWS zone codes the alert covers.
+                stateCodes:
+                    type: array
+                    items:
+                        type: string
+                        description: Two-letter US state codes the alert covers.
+            description: WeatherAlert is one active NWS alert that touches a client service area.
+        ListCalendarEventsRequest:
+            type: object
+            properties:
+                fromDate:
+                    type: string
+                    pattern: ^\d{4}-\d{2}-\d{2}$
+                    description: First date of the window, inclusive, as YYYY-MM-DD.
+                toDate:
+                    type: string
+                    pattern: ^\d{4}-\d{2}-\d{2}$
+                    description: Last date of the window, inclusive, as YYYY-MM-DD.
+                categories:
+                    type: array
+                    items:
+                        type: string
+                        maxItems: 15
+                        description: Marketing category ids to include; an empty list means all categories.
+                    maxItems: 15
+            required:
+                - fromDate
+                - toDate
+            description: ListCalendarEventsRequest selects a date window and marketing categories.
+        ListCalendarEventsResponse:
+            type: object
+            properties:
+                events:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/CalendarEvent'
+                degraded:
+                    type: boolean
+                    description: True when an upstream source failed and the list may be incomplete.
+            description: ListCalendarEventsResponse carries the events inside the requested window.
+        CalendarEvent:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Stable event identifier.
+                date:
+                    type: string
+                    description: Calendar date as YYYY-MM-DD; a date, not a timestamp.
+                name:
+                    type: string
+                    description: Display name of the event.
+                kind:
+                    type: string
+                    description: 'Event kind: holiday or observance.'
+                categories:
+                    type: array
+                    items:
+                        type: string
+                        description: Marketing category ids the event is relevant to.
+            description: CalendarEvent is one holiday or observance relevant to marketing planning.
+        SearchLocalMentionsRequest:
+            type: object
+            properties:
+                queries:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/MentionQuery'
+                    maxItems: 20
+            description: SearchLocalMentionsRequest carries per-client search queries in the POST body.
+        MentionQuery:
+            type: object
+            properties:
+                clientId:
+                    type: string
+                    description: Roster client id the results belong to.
+                terms:
+                    type: array
+                    items:
+                        type: string
+                        maxItems: 10
+                        description: Search terms for this client, such as its business name.
+                    maxItems: 10
+                city:
+                    type: string
+                    description: City used to localize the search.
+                stateCode:
+                    type: string
+                    description: Two-letter US state code used to localize the search.
+            required:
+                - clientId
+            description: MentionQuery is one client's search terms and location.
+        SearchLocalMentionsResponse:
+            type: object
+            properties:
+                mentions:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Mention'
+                degraded:
+                    type: boolean
+                    description: True when an upstream source failed and the list may be incomplete.
+            description: SearchLocalMentionsResponse carries the mentions found for the queries.
+        Mention:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Stable mention identifier.
+                clientId:
+                    type: string
+                    description: Roster client id the mention matched.
+                title:
+                    type: string
+                    description: Article headline.
+                source:
+                    type: string
+                    description: Publisher or feed name.
+                url:
+                    type: string
+                    description: Article URL.
+                publishedAt:
+                    type: integer
+                    format: int64
+                    description: 'Publication time, Unix epoch milliseconds.. Warning: Values > 2^53 may lose precision in JavaScript'
+                lat:
+                    type: number
+                    format: double
+                    description: Latitude of the mention; 0,0 means no location and the browser uses the client location.
+                lon:
+                    type: number
+                    format: double
+                    description: Longitude of the mention; 0,0 means no location and the browser uses the client location.
+            description: Mention is one news article that matched a client's terms.
+        GetDemandTrendsRequest:
+            type: object
+            properties:
+                categories:
+                    type: array
+                    items:
+                        type: string
+                        description: Marketing category ids to include; an empty list means all categories.
+                stateCodes:
+                    type: array
+                    items:
+                        type: string
+                        description: Two-letter US state codes to localize trends to.
+            description: GetDemandTrendsRequest selects marketing categories and US states.
+        GetDemandTrendsResponse:
+            type: object
+            properties:
+                trends:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/DemandTrend'
+                trendingNow:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/TrendingTerm'
+                degraded:
+                    type: boolean
+                    description: True when an upstream source failed and the lists may be incomplete.
+            description: GetDemandTrendsResponse carries category demand series and trending terms.
+        DemandTrend:
+            type: object
+            properties:
+                category:
+                    type: string
+                    description: Marketing category id.
+                points:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/TrendPoint'
+            description: DemandTrend is a demand series for one marketing category.
+        TrendPoint:
+            type: object
+            properties:
+                date:
+                    type: integer
+                    format: int64
+                    description: 'Sample date, Unix epoch milliseconds.. Warning: Values > 2^53 may lose precision in JavaScript'
+                value:
+                    type: number
+                    format: double
+                    description: Relative demand value for the sample.
+            description: TrendPoint is one sample of a demand series.
+        TrendingTerm:
+            type: object
+            properties:
+                term:
+                    type: string
+                    description: Trending search term.
+                geo:
+                    type: string
+                    description: Geography the term is trending in, such as US or US-TX.
+                traffic:
+                    type: string
+                    description: Approximate traffic label from the source, such as "50K+".
+            description: TrendingTerm is one currently trending search term.

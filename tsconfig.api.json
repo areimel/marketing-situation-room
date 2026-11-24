@@ -1,9 +1,10 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": ["vite/client"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client", "node"],
     "tsBuildInfoFile": "node_modules/.cache/tsconfig.api.tsbuildinfo"
   },
-  "include": ["api", "src/generated", "server", "shared/mcp-host-policy.ts"],
+  "include": ["api", "src/generated", "server", "shared/marketing", "tests/marketing*.mts"],
   "exclude": ["server/__tests__/**"]
 }
