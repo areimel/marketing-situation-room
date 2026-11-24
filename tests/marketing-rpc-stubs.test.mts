@@ -11,10 +11,8 @@
  */
 import assert from 'node:assert/strict';
 import { afterEach, describe, it } from 'node:test';
-import { readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
+// @ts-expect-error Edge session helper is plain JavaScript.
+import { issueSessionToken } from '../api/_session.js';
 import { createDomainGateway, serverOptions } from '../server/gateway.ts';
 import { marketingHandler } from '../server/worldmonitor/marketing/v1/handler.ts';
 import { marketingUserAgent } from '../server/worldmonitor/marketing/v1/_user-agent.ts';
@@ -29,8 +27,6 @@ import {
   type WeatherAlert,
 } from '../src/generated/server/worldmonitor/marketing/v1/service_server.ts';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const root = resolve(__dirname, '..');
 const BASE = '/api/marketing/v1';
 const PATHS = {
   weather: `${BASE}/list-weather-alerts`,
@@ -79,11 +75,21 @@ describe('marketing stub handlers', () => {
 });
 
 describe('marketing cache tier (R5)', () => {
-  it('RPC_CACHE_TIER maps all four marketing paths to no-store', () => {
-    const src = readFileSync(resolve(root, 'server/gateway.ts'), 'utf-8');
+  it('serves all four routes to a signed session with private no-store responses', async () => {
+    process.env.WM_SESSION_SECRET = 'fixture-signing-secret-with-at-least-32-characters';
+    const { token } = await issueSessionToken();
+    const gateway = createDomainGateway(createMarketingServiceRoutes(marketingHandler, serverOptions));
     for (const path of Object.values(PATHS)) {
-      const escaped = path.replace(/[/-]/g, (c) => `\\${c}`);
-      assert.match(src, new RegExp(`'${escaped}':\\s*'no-store'`), `${path} must be no-store`);
+      const query = path === PATHS.calendar ? '?from_date=2026-10-01&to_date=2026-10-31' : '';
+      const response = await gateway(new Request(`https://worldmonitor.app${path}${query}`, {
+        method: path === PATHS.mentions ? 'POST' : 'GET',
+        headers: { 'X-WorldMonitor-Key': token, 'Content-Type': 'application/json' },
+        body: path === PATHS.mentions ? '{"queries":[]}' : undefined,
+      }));
+      assert.equal(response.status, 200, path);
+      assert.equal(response.headers.get('Cache-Control'), 'no-store');
+      assert.equal(response.headers.get('CDN-Cache-Control'), null);
+      assert.equal(response.headers.get('Vercel-CDN-Cache-Control'), null);
     }
   });
 
